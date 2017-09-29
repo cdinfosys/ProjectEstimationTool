@@ -1,0 +1,75 @@
+﻿<Window x:Class="ProjectEstimationTool.Views.AddEditTaskDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ProjectEstimationTool.Views"
+        mc:Ignorable="d"
+        Title="Task Properties"
+        DataContext="{StaticResource MainWindowViewModel}" 
+        ResizeMode="NoResize" 
+        ScrollViewer.VerticalScrollBarVisibility="Disabled" 
+        ShowInTaskbar="False" 
+        SizeToContent="Height" 
+        WindowStartupLocation="CenterOwner"
+        Width="350">
+    <Border
+        Padding="5">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock
+                Grid.Row="0"
+                Grid.Column="0">
+                <AccessText Text="_Task:"/>
+            </TextBlock>
+            <TextBox
+                Grid.Row="0"
+                Grid.Column="1"
+                HorizontalAlignment="Stretch"
+                MaxLength="250"
+                Text="{Binding SelectedTask.}"/>
+
+            <TextBlock
+                Grid.Row="1"
+                Grid.Column="0">
+                <AccessText Text="_Minimum Duration:"/>
+            </TextBlock>
+            <TextBox
+                Grid.Row="1"
+                Grid.Column="1"
+                MaxLength="6"
+                Text=""/>
+
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="0">
+                <AccessText Text="Ma_ximum Duration:"/>
+            </TextBlock>
+            <TextBox
+                Grid.Row="2"
+                Grid.Column="1"
+                Text=""/>
+
+            <TextBlock
+                Grid.Row="3"
+                Grid.Column="0">
+                <AccessText Text="_Estimated Duration:"/>
+            </TextBlock>
+            <TextBox
+                Grid.Row="3"
+                Grid.Column="1"
+                MaxLength="6"
+                Text=""/>
+        </Grid>
+    </Border>
+</Window>

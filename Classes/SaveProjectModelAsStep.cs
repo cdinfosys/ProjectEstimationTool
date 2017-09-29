@@ -1,0 +1,50 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using ProjectEstimationTool.Events;
+using ProjectEstimationTool.Model;
+using ProjectEstimationTool.Utilities;
+
+namespace ProjectEstimationTool.Classes
+{
+    public class SaveProjectModelAsStep : ProjectModelProcessingStepBase
+    {
+        private ProjectModel mProjectModel;
+
+        public SaveProjectModelAsStep(ProjectModel projectModel, ProjectModelProcessingStepBase nextStep)
+            :   base(nextStep)
+        {
+            this.mProjectModel = projectModel;
+        }
+
+        public SaveProjectModelAsStep(ProjectModel projectModel)
+        {
+            this.mProjectModel = projectModel;
+        }
+
+        protected override Boolean PerformAction()
+        {
+            Utility.EventAggregator.GetEvent<ProjectModelFilePathRequiredEvent>().Publish
+            (
+                new ProjectModelFilePathRequiredEventPayload(this)
+            );
+            return false;
+        }
+
+        public override ProjectModelProcessingStepBase ContinueWithUserInput(MessageBoxResult userInput, Object additionalData)
+        {
+            switch (userInput)
+            {
+                case MessageBoxResult.OK:
+                    this.mProjectModel.SaveDataAs(additionalData as String);
+                    return this;
+
+                default:
+                    return null;
+            }
+        }
+    }
+}
