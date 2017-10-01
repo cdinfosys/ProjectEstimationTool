@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using ProjectEstimationTool.Classes;
+using NLog;
 
 namespace ProjectEstimationTool.Utilities
 {
@@ -14,6 +15,7 @@ namespace ProjectEstimationTool.Utilities
 
         #region Private class members
         private static readonly Prism.Events.IEventAggregator mEventAggregator = new Prism.Events.EventAggregator();
+        private static Logger mLoggerInstance = LogManager.GetCurrentClassLogger();
         #endregion Private class members
 
         #region Public properties
@@ -34,5 +36,13 @@ namespace ProjectEstimationTool.Utilities
         {
             TaskItemChanged?.Invoke(taskItem, propertyName);
         }
-    }
-}
+
+        public static NLog.ILogger Logger
+        {
+            get
+            {
+                return mLoggerInstance;
+            }
+        }
+    } // class Utility
+} // namespace ProjectEstimationTool.Utilities

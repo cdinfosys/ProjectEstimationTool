@@ -70,7 +70,7 @@ namespace ProjectEstimationTool.Classes
         public Int32 TreeLevel
         {
             get { return this.mTreeLevel; }
-            protected set { this.mTreeLevel = value; }
+            set { this.mTreeLevel = value; }
         }
 
         public Boolean IsLeaf 

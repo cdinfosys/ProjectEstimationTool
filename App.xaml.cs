@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
+using NLog;
+using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool
 {
@@ -13,5 +10,14 @@ namespace ProjectEstimationTool
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            Application.Current.DispatcherUnhandledException += OnUnhandledException;
+        }
+
+        private void OnUnhandledException(Object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            Utility.Logger.Log(LogLevel.Fatal, e.Exception);
+        }
     }
 }

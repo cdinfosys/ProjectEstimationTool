@@ -214,6 +214,15 @@ namespace ProjectEstimationTool.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project version number not found.
+        /// </summary>
+        public static string SQLiteDataAccess_ProjectVersionNotFound {
+            get {
+                return ResourceManager.GetString("SQLiteDataAccess_ProjectVersionNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unsupported schema version.
         /// </summary>
         public static string SQLiteDataAccess_UnsupportedDatabaseSchemaVersion {

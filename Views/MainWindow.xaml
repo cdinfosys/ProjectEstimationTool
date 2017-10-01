@@ -9,7 +9,8 @@
         DataContext="{StaticResource MainWindowViewModel}"
         Title="Project Estimation Tool" 
         ScrollViewer.VerticalScrollBarVisibility="Disabled" 
-        ScrollViewer.CanContentScroll="False" ResizeMode="CanResizeWithGrip">
+        ScrollViewer.CanContentScroll="False" ResizeMode="CanResizeWithGrip"
+        Closing="OnClosingMainWindow">
     <Window.Resources>
         <Style x:Key="HeaderWrapPanelStyle" TargetType="WrapPanel">
             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -47,7 +48,6 @@
         <CommandBinding Command="ApplicationCommands.New" Executed="NewCommandHandler"/>
         <CommandBinding Command="ApplicationCommands.Open" Executed="OpenCommandHandler"/>
         <CommandBinding Command="ApplicationCommands.Save" Executed="SaveCommandHandler"/>
-        <CommandBinding Command="ApplicationCommands.SaveAs" Executed="SaveAsCommandHandler"/>
         <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCommandHandler"/>
         <CommandBinding Command="local:UserInterfaceCommands.Exit" Executed="ExitCommandHandler"/>
         <CommandBinding Command="local:UserInterfaceCommands.About" Executed="AboutCommandHandler"/>
@@ -66,7 +66,6 @@
                         <MenuItem Header="_New" Command="ApplicationCommands.New" InputGestureText="Ctrl+N" />
                         <MenuItem Header="_Open..." Command="ApplicationCommands.Open" InputGestureText="Ctrl+O"/>
                         <MenuItem Header="_Save" Command="ApplicationCommands.Save" InputGestureText="Ctrl+S"/>
-                        <MenuItem Header="S_ave As..." Command="ApplicationCommands.SaveAs" InputGestureText="Ctrl+Alt+S"/>
                         <MenuItem Header="_Close" Command="ApplicationCommands.Close" InputGestureText="Ctrl+W"/>
                         <Separator/>
                         <MenuItem Header="E_xit" Command="local:UserInterfaceCommands.Exit" InputGestureText="Alt+F4"/>

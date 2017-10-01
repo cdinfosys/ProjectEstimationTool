@@ -39,7 +39,10 @@ namespace ProjectEstimationTool.Classes
         /// <param name="additionalData">
         ///     Additional data for processing.
         /// </param>
-        public abstract ProjectModelProcessingStepBase ContinueWithUserInput(MessageBoxResult userInput, Object additionalData);
+        public virtual ProjectModelProcessingStepBase ContinueWithUserInput(MessageBoxResult userInput, Object additionalData)
+        {
+            return null;
+        }
 
         /// <summary>
         ///     Implement this method to perform the work of the step.

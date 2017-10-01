@@ -92,6 +92,19 @@ namespace ProjectEstimationTool.Interfaces
         IEnumerable<DateTime> GetWorkDays();
 
         /// <summary>
+        /// Creates a new project version record.
+        /// </summary>
+        void CreateProjectVersion();
+
+        /// <summary>
+        /// Returns a collection of project versions.
+        /// </summary>
+        /// <returns>
+        /// Returns a collection of <see cref="ProjectVersionDTO"/> project version records.
+        /// </returns>
+        IEnumerable<ProjectVersionDTO> GetProjectVersions();
+
+        /// <summary>
         /// Returns the schema version of the data store.
         /// </summary>
         Int32 SchemaVersion { get; }
@@ -100,5 +113,10 @@ namespace ProjectEstimationTool.Interfaces
         /// Get the date and time when the store was last updated.
         /// </summary>
         DateTime LastUpdateTime { get; }
+
+        /// <summary>
+        /// Gets the version number of the project.
+        /// </summary>
+        Int32 ProjectVersion { get; }
     } // interface IDataAccess
 } // namespace ProjectEstimationTool.Interfaces

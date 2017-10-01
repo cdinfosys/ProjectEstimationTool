@@ -9,6 +9,7 @@ using ProjectEstimationTool.Classes;
 using ProjectEstimationTool.Properties;
 using System.Data.SQLite;
 using System.Data;
+using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.Model
 {
@@ -21,7 +22,8 @@ namespace ProjectEstimationTool.Model
             InvalidFilePath,
             DatabaseSchemaVersionNotFound,
             UnsupportedDatabaseSchemaVersion,
-            DatabaseLastUpdateDateTimeNotFound
+            DatabaseLastUpdateDateTimeNotFound,
+            ProjectVersionNotFound
         }
 
         private String mFilePath = null;
@@ -63,6 +65,10 @@ namespace ProjectEstimationTool.Model
 
                     case ErrorCode.DatabaseLastUpdateDateTimeNotFound:
                         errorMessage = Resources.SQLiteDataAccess_DatabaseLastUpdateDateTimeNotFound;
+                        break;
+
+                    case ErrorCode.ProjectVersionNotFound:
+                        errorMessage = Resources.SQLiteDataAccess_ProjectVersionNotFound;
                         break;
 
                     default:
@@ -115,6 +121,15 @@ namespace ProjectEstimationTool.Model
             )
         ";
 
+        private const String SQL_CREATE_PROJECT_VERSION_TABLE =
+        @"
+            CREATE TABLE ProjectVersion
+            (
+                ProjectVersionID INTEGER NOT NULL PRIMARY KEY,
+                VersionDate DATETIME NOT NULL
+            )
+        ";
+
         private const String SQL_CREATE_TASK_ITEM_TABLE =
         @"
             CREATE TABLE TaskItem
@@ -137,6 +152,7 @@ namespace ProjectEstimationTool.Model
             CREATE TABLE TaskItemArchive
             (
                 TaskItemArchiveID INTEGER NOT NULL PRIMARY KEY,
+                ProjectVersionID INTEGER NOT NULL,
                 TaskItemID INTEGER NOT NULL,
                 ParentTaskItemID INTEGER NULL,
                 ItemDescription TEXT NOT NULL,
@@ -149,6 +165,7 @@ namespace ProjectEstimationTool.Model
                 ArchiveTime DATETIME NOT NULL,
                 FOREIGN KEY (TaskItemID) REFERENCES TaskItem(TaskItemID),
                 FOREIGN KEY (ParentTaskItemID) REFERENCES TaskItem(TaskItemID)
+                FOREIGN KEY (ProjectVersionID) REFERENCES ProjectVersion(ProjectVersionID)
             )
         ";
 
@@ -241,6 +258,7 @@ namespace ProjectEstimationTool.Model
         @"
             INSERT INTO TaskItemArchive
             (
+                ProjectVersionID,
                 TaskItemID,
                 ParentTaskItemID,
                 ItemDescription,
@@ -253,6 +271,7 @@ namespace ProjectEstimationTool.Model
                 ArchiveTime
             )
             SELECT
+                @projectVersionID,
                 TaskItemID,
                 ParentTaskItemID,
                 ItemDescription,
@@ -286,6 +305,12 @@ namespace ProjectEstimationTool.Model
 
         private const String SQL_FETCH_LAST_UPDATE_TIME = @"SELECT DateTimeValue FROM ProjectMetaData WHERE ProjectMetaDataID = @projectMetaDataID";
 
+        private const String SQL_GET_CURRENT_PROJECT_VERSION = @"SELECT MAX(ProjectVersionID) AS ProjectVersionID FROM ProjectVersion";
+
+        private const String SQL_CREATE_PROJECT_VERSION = @"INSERT INTO ProjectVersion(VersionDate) VALUES (DATETIME('now'))";
+
+        private const String SQL_GET_ALL_VERSIONS = @"SELECT  ProjectVersionID, VersionDate FROM ProjectVersion";
+
         #region Private data members
         /// <summary>
         ///     Backing data member for the <see cref="DatabaseFilePath"/> property.
@@ -306,6 +331,11 @@ namespace ProjectEstimationTool.Model
         ///     Date and time when the database was last updated.
         /// </summary>
         private DateTime mDatabaseLastUpdatedDate = DateTime.UtcNow;
+
+        /// <summary>
+        ///     Version of the project.
+        /// </summary>
+        private Int32 mCurrentProjectVersionID = 0;
         #endregion Private data members
 
         #region IDataAccess implementation
@@ -337,6 +367,14 @@ namespace ProjectEstimationTool.Model
             {
                 dbCommand.CommandType = CommandType.Text;
                 dbCommand.CommandText = SQL_CREATE_DAYS_WORKED_TABLE;
+                dbCommand.ExecuteNonQuery();
+            }
+
+            // Create the table that stores the project version history.
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_CREATE_PROJECT_VERSION_TABLE;
                 dbCommand.ExecuteNonQuery();
             }
 
@@ -383,6 +421,9 @@ namespace ProjectEstimationTool.Model
                 dbCommand.Parameters.Add(new SQLiteParameter("@dateTimeValue", DateTime.UtcNow));
                 dbCommand.ExecuteNonQuery();
             }
+
+            // Record the first version of the project.
+            CreateProjectVersion();
         }
 
         public void Open()
@@ -392,7 +433,7 @@ namespace ProjectEstimationTool.Model
             {
                 dbCommand.CommandType = CommandType.Text;
                 dbCommand.CommandText = SQL_READ_DATABASE_SCHEMA_VERSION_ID;
-                dbCommand.Parameters.Add(new SQLiteParameter("@projectMetaDataID", PROJECT_METADATA_ID_LAST_UPDATE_DATE));
+                dbCommand.Parameters.Add(new SQLiteParameter("@projectMetaDataID", PROJECT_METADATA_ID_SCHEMA_VERSION));
                 using (SQLiteDataReader reader = dbCommand.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
                 {
                     if (!reader.Read())
@@ -412,10 +453,91 @@ namespace ProjectEstimationTool.Model
                             String.Format(Resources.ErrorUnsupportedSchemaVersion, databaseSchemaVersion)
                         );
                     }
-
                     this.mSchemaVersion = databaseSchemaVersion;
                 }
             }
+
+            // Get the version number of the database
+            FetchCurrentProjectVersion();
+        }
+
+        public void CreateProjectVersion()
+        {
+            SQLiteConnection dbConnection = GetConnection();
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_CREATE_PROJECT_VERSION;
+                dbCommand.ExecuteNonQuery();
+            }
+
+            FetchCurrentProjectVersion();
+        }
+
+        protected void FetchCurrentProjectVersion()
+        {
+            SQLiteConnection dbConnection = GetConnection();
+
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_GET_CURRENT_PROJECT_VERSION;
+                using (SQLiteDataReader reader = dbCommand.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
+                {
+                    if (!reader.Read())
+                    {
+                        throw new Exception<SQLiteDataAccessExceptionArgs>
+                        (
+                            new SQLiteDataAccessExceptionArgs(this.DatabaseFilePath, SQLiteDataAccessExceptionArgs.ErrorCode.ProjectVersionNotFound)
+                        );
+                    }
+
+                    this.mCurrentProjectVersionID = reader.GetInt32(reader.GetOrdinal("ProjectVersionID"));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns a collection of project versions.
+        /// </summary>
+        /// <returns>
+        /// Returns a collection of <see cref="ProjectVersionDTO"/> project version records.
+        /// </returns>
+        public IEnumerable<ProjectVersionDTO> GetProjectVersions()
+        {
+            List<ProjectVersionDTO> result = new List<ProjectVersionDTO>();
+
+            SQLiteConnection dbConnection = GetConnection();
+
+            SortedList<Int32, ProjectVersionDTO> resultCollection = new SortedList<int, ProjectVersionDTO>
+            (
+                new IntDescendingSortComparer()
+            );
+
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_GET_ALL_VERSIONS;
+                using (SQLiteDataReader reader = dbCommand.ExecuteReader())
+                {
+                    Int32 colIndexProjectVersionID = reader.GetOrdinal("ProjectVersionID");
+                    Int32 colIndexVersionDate = reader.GetOrdinal("VersionDate");
+
+                    while (reader.Read())
+                    {
+                        Int32 projectVersionID = reader.GetInt32(colIndexProjectVersionID);
+                        DateTime versionDate = reader.GetDateTime(colIndexVersionDate);
+
+                        resultCollection.Add(projectVersionID, new ProjectVersionDTO(projectVersionID, versionDate));
+                    }
+                }
+            }
+            foreach (var collectionRec in resultCollection)
+            {
+                result.Add(collectionRec.Value);
+            }
+
+            return result;
         }
 
         public void SetLastUpdateTime()
@@ -468,6 +590,7 @@ namespace ProjectEstimationTool.Model
                 dbCommand.CommandType = CommandType.Text;
                 dbCommand.CommandText = SQL_ARCHIVE_TASK_ITEM;
                 dbCommand.Parameters.Add(new SQLiteParameter("@taskItemID", taskItemID));
+                dbCommand.Parameters.Add(new SQLiteParameter("@projectVersionID", mCurrentProjectVersionID));
                 dbCommand.ExecuteNonQuery();
             }
         }
@@ -507,7 +630,14 @@ namespace ProjectEstimationTool.Model
                 dbCommand.CommandType = CommandType.Text;
                 dbCommand.CommandText = SQL_STORE_UPDATE_TASK_ITEM;
                 dbCommand.Parameters.Add(new SQLiteParameter("@taskItemID", taskItemID));
-                dbCommand.Parameters.Add(new SQLiteParameter("@parentTaskItemID", parentTaskItemID));
+                if (parentTaskItemID == 0)
+                {
+                    dbCommand.Parameters.Add(new SQLiteParameter("@parentTaskItemID", DBNull.Value));
+                }
+                else
+                {
+                    dbCommand.Parameters.Add(new SQLiteParameter("@parentTaskItemID", parentTaskItemID));
+                }
                 dbCommand.Parameters.Add(new SQLiteParameter("@itemDescription", itemDescription));
                 dbCommand.Parameters.Add(new SQLiteParameter("@estimatedTimeMinutes", estimatedTimeMinutes));
                 dbCommand.Parameters.Add(new SQLiteParameter("@minimumTimeMinutes", minimumTimeMinutes));
@@ -540,7 +670,6 @@ namespace ProjectEstimationTool.Model
                     Int32 colIndexPercentageComplete = reader.GetOrdinal("PercentageComplete");
                     Int32 colIndexTimeSpentMinutes = reader.GetOrdinal("TimeSpentMinutes");
 
-
                     while (reader.Read())
                     {
                         taskItems.Add
@@ -571,7 +700,7 @@ namespace ProjectEstimationTool.Model
             return result;
         }
 
-        void LogWorkDay(DateTime workDayDate)
+        public void LogWorkDay(DateTime workDayDate)
         {
             SQLiteConnection dbConnection = GetConnection();
             using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
@@ -648,6 +777,11 @@ namespace ProjectEstimationTool.Model
         /// Get the date and time when the store was last updated.
         /// </summary>
         public DateTime LastUpdateTime => this.mDatabaseLastUpdatedDate;
+
+        /// <summary>
+        /// Gets the version number of the project.
+        /// </summary>
+        public Int32 ProjectVersion => this.mCurrentProjectVersionID;
 
         #endregion Public properties
 

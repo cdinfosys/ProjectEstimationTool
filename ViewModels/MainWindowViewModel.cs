@@ -33,6 +33,8 @@ namespace ProjectEstimationTool.ViewModels
 
         public void OnOpenDocument()
         {
+            ProjectModelProcessingStepBase steps = new CloseProjectModelStep(this.ProjectModel, new LoadProjectModelStep(this.ProjectModel));
+            steps.Execute();
         }
 
         public void OnCloseDocument()
@@ -56,6 +58,12 @@ namespace ProjectEstimationTool.ViewModels
         public void OnSaveDocumentAs()
         {
             ProjectModelProcessingStepBase steps = new SaveProjectModelAsStep(this.ProjectModel);
+            steps.Execute();
+        }
+
+        public void OnCloseMainWindow()
+        {
+            ProjectModelProcessingStepBase steps = new CloseProjectModelStep(this.ProjectModel, new ExitProgramStep(this.ProjectModel));
             steps.Execute();
         }
 

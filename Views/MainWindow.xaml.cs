@@ -25,7 +25,6 @@ namespace ProjectEstimationTool.Views
             ApplicationCommands.New.InputGestures.Add(new KeyGesture(Key.N, ModifierKeys.Control));
             ApplicationCommands.Open.InputGestures.Add(new KeyGesture(Key.O, ModifierKeys.Control));
             ApplicationCommands.Save.InputGestures.Add(new KeyGesture(Key.S, ModifierKeys.Control));
-            ApplicationCommands.SaveAs.InputGestures.Add(new KeyGesture(Key.S, ModifierKeys.Control | ModifierKeys.Alt));
             ApplicationCommands.Close.InputGestures.Add(new KeyGesture(Key.W, ModifierKeys.Control));
         }
     } // class UserInterfaceCommands
@@ -35,7 +34,8 @@ namespace ProjectEstimationTool.Views
     /// </summary>
     public partial class MainWindow : Window, IMainWindowView
     {
-        private SaveFileDialog mSaveFileDialog = new SaveFileDialog();
+        private SaveFileDialog mSaveFileDialog;
+        private OpenFileDialog mOpenFileDialog;
 
         /// <summary>
         ///     Default constructor.
@@ -43,17 +43,42 @@ namespace ProjectEstimationTool.Views
         public MainWindow()
         {
             InitializeComponent();
+            mSaveFileDialog = new SaveFileDialog()
+            {
+                AddExtension = true,
+                CheckFileExists = false,
+                CheckPathExists = true,
+                DereferenceLinks = true,
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                ValidateNames = true,
+                DefaultExt = ".petproj",
+                Filter = "Estimation Tool Projects|*.petproj|All Files|*.*"
+            };
 
-            mSaveFileDialog.CheckFileExists = false;
-            mSaveFileDialog.CheckPathExists = true;
-            mSaveFileDialog.DereferenceLinks = true;
-            mSaveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            mSaveFileDialog.ValidateNames = true;
+            mOpenFileDialog = new OpenFileDialog()
+            {
+                AddExtension = true,
+                CheckFileExists = true,
+                CheckPathExists = true,
+                DereferenceLinks = true,
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                ValidateNames = true,
+                DefaultExt = ".petproj",
+                Filter = "Estimation Tool Projects|*.petproj|All Files|*.*",
+                Multiselect = false,
+                ShowReadOnly = false
+            };
 
             Utility.EventAggregator.GetEvent<ProjectModelUserInputRequiredEvent>().Subscribe(u => GetUserInput(u));
             Utility.EventAggregator.GetEvent<ProjectModelFilePathRequiredEvent>().Subscribe(u => GetFilePath(u));
+            Utility.EventAggregator.GetEvent<ExitProgramEvent>().Subscribe(u => CloseMainWindow(u));
 
             (this.DataContext as MainWindowViewModel).OnNewDocument();
+        }
+
+        private void CloseMainWindow(Int32 programExitCode)
+        {
+            this.Close();
         }
 
         private void NewCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
@@ -88,7 +113,8 @@ namespace ProjectEstimationTool.Views
 
         private void ExitCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
         {
-            this.Close();
+            (this.DataContext as MainWindowViewModel).OnCloseMainWindow();
+            eventArgs.Handled = true;
         }
 
         private void AboutCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
@@ -130,8 +156,24 @@ namespace ProjectEstimationTool.Views
 
         private void GetFilePath(ProjectModelFilePathRequiredEventPayload payload)
         {
-            MessageBoxResult mbResult = mSaveFileDialog.ShowDialog(this).GetValueOrDefault(false) ? MessageBoxResult.OK : MessageBoxResult.Cancel;
-            payload.CurrentStep.ContinueWithUserInput(mbResult, mSaveFileDialog.FileName)?.Execute();
+            MessageBoxResult mbResult = MessageBoxResult.None;
+
+            if (payload.ShowOpenDialog)
+            {
+                mbResult = mOpenFileDialog.ShowDialog(this).GetValueOrDefault(false) ? MessageBoxResult.OK : MessageBoxResult.Cancel;
+                payload.CurrentStep.ContinueWithUserInput(mbResult, mOpenFileDialog.FileName)?.Execute();
+            }
+            else
+            {
+                mbResult = mSaveFileDialog.ShowDialog(this).GetValueOrDefault(false) ? MessageBoxResult.OK : MessageBoxResult.Cancel;
+                payload.CurrentStep.ContinueWithUserInput(mbResult, mSaveFileDialog.FileName)?.Execute();
+            }
+        }
+
+        private void OnClosingMainWindow(Object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            (this.DataContext as MainWindowViewModel).OnCloseMainWindow();
         }
     } // class MainWindow 
 } // namespace ProjectEstimationTool.Views

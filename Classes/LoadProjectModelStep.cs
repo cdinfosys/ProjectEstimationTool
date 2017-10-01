@@ -1,22 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using ProjectEstimationTool.Events;
 using ProjectEstimationTool.Model;
+using ProjectEstimationTool.Properties;
 using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.Classes
 {
-    public class SaveProjectModelAsStep : ProjectModelProcessingStepBase
+    public class LoadProjectModelStep : ProjectModelProcessingStepBase
     {
         private ProjectModel mProjectModel;
 
-        public SaveProjectModelAsStep(ProjectModel projectModel, ProjectModelProcessingStepBase nextStep)
+        public LoadProjectModelStep(ProjectModel projectModel, ProjectModelProcessingStepBase nextStep)
             :   base(nextStep)
         {
             this.mProjectModel = projectModel;
         }
 
-        public SaveProjectModelAsStep(ProjectModel projectModel)
+        public LoadProjectModelStep(ProjectModel projectModel)
         {
             this.mProjectModel = projectModel;
         }
@@ -27,10 +32,10 @@ namespace ProjectEstimationTool.Classes
             (
                 new ProjectModelFilePathRequiredEventPayload(this)
                 {
-                    ShowOpenDialog = false
+                    ShowOpenDialog = true
                 }
             );
-            return false;
+            return true;
         }
 
         public override ProjectModelProcessingStepBase ContinueWithUserInput(MessageBoxResult userInput, Object additionalData)
@@ -38,12 +43,13 @@ namespace ProjectEstimationTool.Classes
             switch (userInput)
             {
                 case MessageBoxResult.OK:
-                    this.mProjectModel.SaveDataAs(additionalData as String);
+                    this.mProjectModel.LoadData(additionalData as String);
                     return this;
 
                 default:
                     return null;
             }
         }
-    }
-}
+
+    } // class LoadProjectModelStep
+} // namespace ProjectEstimationTool.Classes

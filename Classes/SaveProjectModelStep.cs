@@ -28,6 +28,9 @@ namespace ProjectEstimationTool.Classes
                 Utility.EventAggregator.GetEvent<ProjectModelFilePathRequiredEvent>().Publish
                 (
                     new ProjectModelFilePathRequiredEventPayload(this)
+                    {
+                        ShowOpenDialog = false
+                    }
                 );
                 return false;
             }

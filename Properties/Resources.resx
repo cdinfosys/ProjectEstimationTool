@@ -174,4 +174,7 @@
   <data name="UndefinedError" xml:space="preserve">
     <value>Undefined error</value>
   </data>
+  <data name="SQLiteDataAccess_ProjectVersionNotFound" xml:space="preserve">
+    <value>Project version number not found</value>
+  </data>
 </root>
