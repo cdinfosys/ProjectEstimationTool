@@ -254,6 +254,8 @@ namespace ProjectEstimationTool.Model
 
         private const String SQL_DELETE_TASK_ITEM = @"UPDATE TaskItem SET IsDeleted = @isDeleted WHERE TaskItemID = @taskItemID";
 
+        private const String SQL_GET_MAX_TASK_ITEM_ID = @"SELECT MAX(TaskItemID) AS TaskItemID FROM TaskItem";
+
         private const String SQL_ARCHIVE_TASK_ITEM =
         @"
             INSERT INTO TaskItemArchive
@@ -745,6 +747,25 @@ namespace ProjectEstimationTool.Model
             return result;
         }
 
+        public Int32 GetHighestTaskItemID()
+        {
+            SQLiteConnection dbConnection = GetConnection();
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_GET_MAX_TASK_ITEM_ID;
+                using (SQLiteDataReader reader = dbCommand.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return reader.GetInt32(reader.GetOrdinal("TaskItemID"));
+                    }
+
+                    return 0;
+                }
+            }
+        }
+
         #endregion IDataAccess implementation
 
         #region IDisposable implementation
@@ -782,7 +803,6 @@ namespace ProjectEstimationTool.Model
         /// Gets the version number of the project.
         /// </summary>
         public Int32 ProjectVersion => this.mCurrentProjectVersionID;
-
         #endregion Public properties
 
         #region Private helper methods

@@ -29,7 +29,7 @@ namespace ProjectEstimationTool.Classes
 
         public override ProjectModelProcessingStepBase ContinueWithUserInput(MessageBoxResult userInput, Object additionalData)
         {
-            throw new NotImplementedException();
+            return null;
         }
     } // class NewProjectModelStep
 } // namespace ProjectEstimationTool.Classes

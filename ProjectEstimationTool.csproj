@@ -115,6 +115,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\CloseProjectModelStep.cs" />
+    <Compile Include="Classes\DisableMainWindowStep.cs" />
+    <Compile Include="Classes\PropertyValidationErrorsCollection.cs" />
+    <Compile Include="Events\ShowAddItemEvent.cs" />
+    <Compile Include="Events\ShowEditItemEvent.cs" />
+    <Compile Include="Utilities\EmptyFieldValidationRule.cs" />
     <Compile Include="Classes\EnumerationValues.cs" />
     <Compile Include="Classes\ExitProgramStep.cs" />
     <Compile Include="Classes\LoadProjectModelStep.cs" />

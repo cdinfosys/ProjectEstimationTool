@@ -22,9 +22,16 @@ namespace ProjectEstimationTool.Classes
 
         public void Execute()
         {
-            if (PerformAction())
+            try
             {
-                this.mNextStep?.Execute();
+                if (PerformAction())
+                {
+                    this.mNextStep?.Execute();
+                }
+            }
+            finally
+            {
+                PerformCleanup();
             }
         }
 
@@ -51,5 +58,12 @@ namespace ProjectEstimationTool.Classes
         ///     Returns <c>true</c> if the action was performed successfully of <c>false</c> if the action was not performed
         /// </returns>
         protected abstract Boolean PerformAction();
+
+        /// <summary>
+        ///     Called after all child steps have been executed.
+        /// </summary>
+        protected virtual void PerformCleanup()
+        {
+        }
     } // class ProjectModelProcessingStepBase
 } // ProjectEstimationTool.Classes

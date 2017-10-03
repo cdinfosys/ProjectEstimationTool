@@ -44,7 +44,7 @@ namespace ProjectEstimationTool.Classes
             {
                 case MessageBoxResult.OK:
                     this.mProjectModel.LoadData(additionalData as String);
-                    return this;
+                    return this.NextStep;
 
                 default:
                     return null;

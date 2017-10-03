@@ -46,8 +46,8 @@ namespace ProjectEstimationTool.Utilities
 
         public Object Convert(Object value, Type targetType, Object parameter, CultureInfo culture)
         {
-            Int32 inputMinutes;
-            if (!Int32.TryParse(value.ToString(), out inputMinutes))
+            Double inputMinutes;
+            if (!Double.TryParse(value.ToString(), out inputMinutes))
             {
                 return String.Empty;
             }
@@ -55,7 +55,7 @@ namespace ProjectEstimationTool.Utilities
             switch (MeasurementType)
             {
                 case TimeMeasurementUnits.Hours:
-                    return String.Format(mFormatProvider, "{0:N2}", System.Convert.ToDouble(inputMinutes) / 60.0);
+                    return String.Format(mFormatProvider, "{0:N2}", inputMinutes / 60.0);
 
                 case TimeMeasurementUnits.Minutes:
                 default:
@@ -67,7 +67,7 @@ namespace ProjectEstimationTool.Utilities
         {
             if ((value == null) || (String.IsNullOrWhiteSpace(value.ToString())))
             {
-                return 0;
+                return 0.0;
             }
 
             String inputString = value.ToString().Trim();
@@ -79,11 +79,10 @@ namespace ProjectEstimationTool.Utilities
                     Double hours;
                     if (Double.TryParse(inputString, out hours))
                     {
-                        hours = Math.Max(0.0, Math.Min(99999.0 / 60.0, hours));
-                        return (System.Convert.ToInt32(hours * 60.0));
+                        return hours * 60.0;
                     }
 
-                    return 0;
+                    return 0.0;
                 }
 
                 case TimeMeasurementUnits.Minutes:
@@ -92,11 +91,10 @@ namespace ProjectEstimationTool.Utilities
                     Double minutes;
                     if (Double.TryParse(inputString, out minutes))
                     {
-                        minutes = Math.Max(0.0, Math.Min(99999.0, minutes));
-                        return (System.Convert.ToInt32(minutes));
+                        return minutes;
                     }
 
-                    return 0;
+                    return 0.0;
                 }
             }
         }

@@ -4,21 +4,56 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ProjectEstimationTool.Views"
+        xmlns:utilities="clr-namespace:ProjectEstimationTool.Utilities"
         mc:Ignorable="d"
         Title="Task Properties"
         DataContext="{StaticResource MainWindowViewModel}" 
         ResizeMode="NoResize" 
         ScrollViewer.VerticalScrollBarVisibility="Disabled" 
         ShowInTaskbar="False" 
-        SizeToContent="Height" 
+        SizeToContent="WidthAndHeight" 
         WindowStartupLocation="CenterOwner"
-        Width="350">
+        Padding="5"
+        Width="Auto">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
     <Border
         Padding="5">
-        <Grid>
+        <Border.Resources>
+            <Style x:Key="DescriptionTextBlockStyle" TargetType="TextBlock">
+                <Setter Property="Margin" Value="0,0,5,5"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="AccessTextBlockStyle" TargetType="AccessText">
+                <Setter Property="Margin" Value="0,0,5,0"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style x:Key="UnitsTextBlockStyle" TargetType="TextBlock">
+                <Setter Property="Margin" Value="0,0,0,5"/>
+                <Setter Property="FontStyle" Value="Italic"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="VerticalAlignment" Value="Top"/>
+                <Setter Property="Margin" Value="5,0,0,5"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Style.Triggers>
+                    <Trigger Property="Validation.HasError" Value="true">
+                        <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <utilities:TimeUnitsConverter x:Key="TimeUnitsConverter" MeasurementType="{Binding SelectedTimeUnits}" />
+        </Border.Resources>
+        <Grid 
+            FocusManager.FocusedElement="{Binding ElementName=ItemDescriptionTextBox}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="250"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -27,49 +62,196 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
+            <!-- Task Description -->
             <TextBlock
                 Grid.Row="0"
-                Grid.Column="0">
-                <AccessText Text="_Task:"/>
+                Grid.Column="0"
+                Style="{StaticResource DescriptionTextBlockStyle}">
+                <AccessText Text="_Task Description:"/>
             </TextBlock>
             <TextBox
+                x:Name="ItemDescriptionTextBox"
                 Grid.Row="0"
                 Grid.Column="1"
-                HorizontalAlignment="Stretch"
+                Grid.ColumnSpan="2"
                 MaxLength="250"
-                Text="{Binding SelectedTask.}"/>
+                GotFocus="OnTextBoxGotFocus"
+                TabIndex="0">
+                <TextBox.Text>
+                    <Binding 
+                        Path="EditBoxSelectedTaskItem.ItemDescription"
+                        UpdateSourceTrigger="PropertyChanged"
+                        NotifyOnValidationError="True"
+                        ValidatesOnDataErrors="True"
+                        ValidatesOnExceptions="True" 
+                        ValidatesOnNotifyDataErrors="True">
+                        <Binding.ValidationRules>
+                            <utilities:EmptyFieldValidationRule/>
+                        </Binding.ValidationRules>
+                    </Binding>
+                </TextBox.Text>
+            </TextBox>
 
-            <TextBlock
+            <!-- Minimum Duration -->
+            <StackPanel
                 Grid.Row="1"
-                Grid.Column="0">
-                <AccessText Text="_Minimum Duration:"/>
-            </TextBlock>
+                Grid.Column="0"
+                Visibility="{Binding IsTimeEstimatesEditingAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                Orientation="Horizontal"
+                HorizontalAlignment="Stretch">
+                <AccessText Style="{StaticResource AccessTextBlockStyle}" Text="_Minimum Duration"/>
+                <TextBlock Style="{StaticResource UnitsTextBlockStyle}" HorizontalAlignment="Center" Text="{Binding SelectedTimeUnitsLabel, StringFormat={}({0})}" />
+                <TextBlock Style="{StaticResource DescriptionTextBlockStyle}" HorizontalAlignment="Center" Text=":" />
+            </StackPanel>
             <TextBox
+                x:Name="MinimumTimeTextBox"
                 Grid.Row="1"
                 Grid.Column="1"
-                MaxLength="6"
-                Text=""/>
+                GotFocus="OnTextBoxGotFocus"
+                TextChanged="OnTextBoxTextChanged"
+                TabIndex="1"
+                Visibility="{Binding IsTimeEstimatesEditingAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                IsEnabled="{Binding IsTimeEstimatesEditingAvailable}"
+                utilities:TimeInputValidation.MinimumValue="0"
+                utilities:TimeInputValidation.MaximumValue="{Binding EditBoxSelectedTaskItem.EstimatedTimeMinutes}"
+                MaxLength="6">
+                <TextBox.Text>
+                    <Binding 
+                        Path="EditBoxSelectedTaskItem.MinimumTimeMinutes"
+                        Converter="{StaticResource TimeUnitsConverter}"
+                        UpdateSourceTrigger="LostFocus"
+                        NotifyOnValidationError="True"
+                        ValidatesOnDataErrors="True"
+                        ValidatesOnExceptions="True" 
+                        ValidatesOnNotifyDataErrors="True">
+                        <Binding.ValidationRules>
+                            <utilities:EmptyFieldValidationRule/>
+                            <utilities:TimeInputValidation ValidateForAddEditDialog="True" ValidatesOnTargetUpdated="True"/>
+                        </Binding.ValidationRules>
+                    </Binding>
+                </TextBox.Text>
+            </TextBox>
 
-            <TextBlock
+            <!-- Maximum Duration -->
+            <StackPanel
                 Grid.Row="2"
-                Grid.Column="0">
-                <AccessText Text="Ma_ximum Duration:"/>
-            </TextBlock>
+                Grid.Column="0"
+                Visibility="{Binding IsTimeEstimatesEditingAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                Orientation="Horizontal"
+                HorizontalAlignment="Stretch">
+                <AccessText Style="{StaticResource AccessTextBlockStyle}" Text="Ma_ximum Duration"/>
+                <TextBlock Style="{StaticResource UnitsTextBlockStyle}" HorizontalAlignment="Center" Text="{Binding SelectedTimeUnitsLabel, StringFormat={}({0})}" />
+                <TextBlock Style="{StaticResource DescriptionTextBlockStyle}" HorizontalAlignment="Center" Text=":" />
+            </StackPanel>
             <TextBox
+                x:Name="MaximumTimeTextBox"
                 Grid.Row="2"
                 Grid.Column="1"
-                Text=""/>
+                GotFocus="OnTextBoxGotFocus"
+                TextChanged="OnTextBoxTextChanged"
+                TabIndex="2"
+                IsEnabled="{Binding IsTimeEstimatesEditingAvailable}"
+                Visibility="{Binding IsTimeEstimatesEditingAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                utilities:TimeInputValidation.MinimumValue="{Binding EditBoxSelectedTaskItem.EstimatedTimeMinutes}"
+                utilities:TimeInputValidation.MaximumValue="99999">
+                <TextBox.Text>
+                    <Binding 
+                        Path="EditBoxSelectedTaskItem.MaximumTimeMinutes"
+                        Converter="{StaticResource TimeUnitsConverter}"
+                        UpdateSourceTrigger="LostFocus"
+                        NotifyOnValidationError="True"
+                        ValidatesOnDataErrors="True"
+                        ValidatesOnExceptions="True" 
+                        ValidatesOnNotifyDataErrors="True">
+                        <Binding.ValidationRules>
+                            <utilities:EmptyFieldValidationRule/>
+                            <utilities:TimeInputValidation ValidateForAddEditDialog="True" ValidatesOnTargetUpdated="True"/>
+                        </Binding.ValidationRules>
+                    </Binding>
+                </TextBox.Text>
+            </TextBox>
 
-            <TextBlock
+            <!-- Estimated duration -->
+            <StackPanel
                 Grid.Row="3"
-                Grid.Column="0">
-                <AccessText Text="_Estimated Duration:"/>
-            </TextBlock>
+                Grid.Column="0"
+                Visibility="{Binding IsTimeEstimatesEditingAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                Orientation="Horizontal"
+                HorizontalAlignment="Stretch">
+                <AccessText Style="{StaticResource AccessTextBlockStyle}" Text="_Estimated Duration"/>
+                <TextBlock Style="{StaticResource UnitsTextBlockStyle}" HorizontalAlignment="Center" Text="{Binding SelectedTimeUnitsLabel, StringFormat={}({0})}" />
+                <TextBlock Style="{StaticResource DescriptionTextBlockStyle}" HorizontalAlignment="Center" Text=":" />
+            </StackPanel>
             <TextBox
+                x:Name="EstimatedTimeTextBox"
                 Grid.Row="3"
                 Grid.Column="1"
+                GotFocus="OnTextBoxGotFocus"
+                TextChanged="OnTextBoxTextChanged"
+                TabIndex="3"
                 MaxLength="6"
-                Text=""/>
+                IsEnabled="{Binding IsTimeEstimatesEditingAvailable}"
+                Visibility="{Binding IsTimeEstimatesEditingAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                utilities:TimeInputValidation.MinimumValue="{Binding EditBoxSelectedTaskItem.MinimumTimeMinutes}"
+                utilities:TimeInputValidation.MaximumValue="{Binding EditBoxSelectedTaskItem.MaximumTimeMinutes}">
+                <TextBox.Text>
+                    <Binding 
+                        Path="EditBoxSelectedTaskItem.EstimatedTimeMinutes"
+                        Converter="{StaticResource TimeUnitsConverter}"
+                        UpdateSourceTrigger="LostFocus"
+                        NotifyOnValidationError="True"
+                        ValidatesOnDataErrors="True"
+                        ValidatesOnExceptions="True"
+                        ValidatesOnNotifyDataErrors="True">
+                        <Binding.ValidationRules>
+                            <utilities:EmptyFieldValidationRule/>
+                            <utilities:TimeInputValidation ValidateForAddEditDialog="True" ValidatesOnTargetUpdated="True"/>
+                        </Binding.ValidationRules>
+                    </Binding>
+                </TextBox.Text>
+            </TextBox>
+
+            <StackPanel
+                Grid.Row="4"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right">
+                <StackPanel.Resources>
+                    <Style TargetType="Button">
+                        <Setter Property="Width" Value="100"/>
+                        <Setter Property="Margin" Value="10, 5, 0, 5"/>
+                    </Style>
+                </StackPanel.Resources>
+                <Button
+                    IsDefault="True"
+                    TabIndex="4"
+                    Click="OnOkButtonClick"
+                    Command="{Binding AddEditTaskDialogOkButtonCommand}">
+                    <AccessText Text="_OK"/>
+                    <Button.Style>
+                        <Style TargetType="{x:Type Button}">
+                            <Setter Property="Width" Value="100"/>
+                            <Setter Property="Margin" Value="10, 5, 0, 5"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding ElementName=MinimumTimeTextBox, Path=(Validation.HasError)}" Value="False"/>
+                                        <Condition Binding="{Binding ElementName=MaximumTimeTextBox, Path=(Validation.HasError)}" Value="False"/>
+                                        <Condition Binding="{Binding ElementName=EstimatedTimeTextBox, Path=(Validation.HasError)}" Value="False"/>
+                                    </MultiDataTrigger.Conditions>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button
+                    IsCancel="True"
+                    TabIndex="5">
+                    <AccessText Text="_Cancel"/>
+                </Button>
+            </StackPanel>
+
         </Grid>
     </Border>
 </Window>

@@ -1,4 +1,4 @@
-﻿using System;
+﻿    using System;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
@@ -72,6 +72,8 @@ namespace ProjectEstimationTool.Views
             Utility.EventAggregator.GetEvent<ProjectModelUserInputRequiredEvent>().Subscribe(u => GetUserInput(u));
             Utility.EventAggregator.GetEvent<ProjectModelFilePathRequiredEvent>().Subscribe(u => GetFilePath(u));
             Utility.EventAggregator.GetEvent<ExitProgramEvent>().Subscribe(u => CloseMainWindow(u));
+            Utility.EventAggregator.GetEvent<ShowEditItemEvent>().Subscribe(() => EditTask());
+            Utility.EventAggregator.GetEvent<ShowAddItemEvent>().Subscribe(() => AddTask());
 
             (this.DataContext as MainWindowViewModel).OnNewDocument();
         }
@@ -113,8 +115,8 @@ namespace ProjectEstimationTool.Views
 
         private void ExitCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
         {
-            (this.DataContext as MainWindowViewModel).OnCloseMainWindow();
             eventArgs.Handled = true;
+            this.Close();
         }
 
         private void AboutCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
@@ -122,7 +124,16 @@ namespace ProjectEstimationTool.Views
             MessageBox.Show(this, "Not implemented", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
-        private void AddEditTaskCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
+        private void EditTask()
+        {
+            AddEditTaskDialog dialog = new AddEditTaskDialog()
+            {
+                Owner = this
+            };
+            dialog.ShowDialog();
+        }
+
+        private void AddTask()
         {
             AddEditTaskDialog dialog = new AddEditTaskDialog()
             {
@@ -170,10 +181,10 @@ namespace ProjectEstimationTool.Views
             }
         }
 
-        private void OnClosingMainWindow(Object sender, System.ComponentModel.CancelEventArgs e)
+        private void OnClosingMainWindow(Object sender, System.ComponentModel.CancelEventArgs eventArgs)
         {
-            e.Cancel = true;
             (this.DataContext as MainWindowViewModel).OnCloseMainWindow();
+            eventArgs.Cancel = (this.DataContext as MainWindowViewModel).CanCloseMainWindow ? false : true;
         }
     } // class MainWindow 
 } // namespace ProjectEstimationTool.Views

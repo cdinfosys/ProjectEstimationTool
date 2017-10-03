@@ -39,7 +39,7 @@ namespace ProjectEstimationTool.Classes
             {
                 case MessageBoxResult.OK:
                     this.mProjectModel.SaveDataAs(additionalData as String);
-                    return this;
+                    return this.NextStep;
 
                 default:
                     return null;

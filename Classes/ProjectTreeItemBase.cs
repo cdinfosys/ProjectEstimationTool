@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
@@ -14,11 +15,15 @@ namespace ProjectEstimationTool.Classes
         /// </summary>
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
+        #region Class members
+        private static Int32 mHighestProjectItemID = Int32.MinValue;
+        #endregion // Class members
+
         #region Private data members
         /// <summary>
         ///     Next level of project items
         /// </summary>
-        private List<ProjectTreeItemBase> mChildren;
+        private ObservableCollection<ProjectTreeItemBase> mChildren;
 
         /// <summary>
         ///     Level in the tree where the item appears
@@ -44,15 +49,31 @@ namespace ProjectEstimationTool.Classes
         }
         #endregion Overridables
 
+        #region Class methods
+        public static void SetHighestProjectItemID(Int32 projectItemID)
+        {
+            mHighestProjectItemID = projectItemID;
+        }
+
+        /// <summary>
+        ///     Gets the ProjectItemID for a new item to be added.
+        /// </summary>
+        /// <returns></returns>
+        public static Int32 GetNextProjectItemID()
+        {
+            return ++mHighestProjectItemID;
+        }
+        #endregion Class methods
+
         #region Public Properties
-        public virtual IList<ProjectTreeItemBase> Children
+        public virtual ObservableCollection<ProjectTreeItemBase> Children
         {
             get { return this.mChildren; }
             set 
             {
                 if (!Object.Equals(this.mChildren, value))
                 {
-                    if (SetProperty<List<ProjectTreeItemBase>>(ref this.mChildren, value.ToList()))
+                    if (SetProperty<ObservableCollection<ProjectTreeItemBase>>(ref this.mChildren, value))
                     {
                         SetTreeLevel();
                     } 
@@ -81,13 +102,30 @@ namespace ProjectEstimationTool.Classes
             }
         }
 
-        public abstract Int32 ProjectItemID { get; set; }
-        public abstract Int32 MinimumTimeMinutes { get; set; }
-        public abstract Int32 MaximumTimeMinutes { get; set; }
-        public abstract Int32 EstimatedTimeMinutes { get; set; }
-        public abstract Int32 TimeSpentMinutes { get; set; }
+        public virtual Int32 ProjectItemID
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                mHighestProjectItemID = Math.Max(mHighestProjectItemID, value);
+            }
+        }
+
+        public abstract Double MinimumTimeMinutes { get; set; }
+        public abstract Double MaximumTimeMinutes { get; set; }
+        public abstract Double EstimatedTimeMinutes { get; set; }
+        public abstract Double TimeSpentMinutes { get; set; }
         public abstract Int32 PercentageComplete { get; set; }
         #endregion Public Properties
+
+        public void RaiseCollectionChanged()
+        {
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove));
+        }
+
 
         #region Protected helpers
         protected virtual void FieldUpdated()
@@ -124,7 +162,7 @@ namespace ProjectEstimationTool.Classes
 
             if ((this.mChildren != null) && (this.mChildren.Count > 0))
             {
-                clone.mChildren = new List<ProjectTreeItemBase>();
+                clone.mChildren = new ObservableCollection<ProjectTreeItemBase>();
                 foreach (ProjectTreeItemBase child in this.mChildren)
                 {
                     clone.mChildren.Add(child.Clone() as ProjectTreeItemBase);

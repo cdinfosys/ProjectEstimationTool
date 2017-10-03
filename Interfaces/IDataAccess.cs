@@ -76,6 +76,13 @@ namespace ProjectEstimationTool.Interfaces
         IEnumerable<ProjectTreeItemBase> GetTaskItems(Boolean onlyActiveItems);
 
         /// <summary>
+        ///     Gets the highest TaskItemID in the TaskItem table.
+        /// </summary>
+        /// <returns>
+        /// </returns>
+        Int32 GetHighestTaskItemID();
+
+        /// <summary>
         ///     Log a work day in the DaysWorked table.
         /// </summary>
         /// <param name="workDayDate">

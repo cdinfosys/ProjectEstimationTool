@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using NLog;
 using ProjectEstimationTool.Classes;
 using ProjectEstimationTool.Events;
@@ -198,6 +199,8 @@ namespace ProjectEstimationTool.Model
                 ProjectItemID = 1,
                 ItemDescription = Resources.DefaultRootTaksDescription
             };
+            ProjectTreeItemBase.SetHighestProjectItemID(1);
+
             /*
             mProjectItemsRoot =  new ProjectModelTreeBranchItem()
             {
@@ -270,6 +273,7 @@ namespace ProjectEstimationTool.Model
                 (dataAccess as SQLiteDataAccess).DatabaseFilePath = filePath;
             }
             dataAccess.Open();
+            ProjectTreeItemBase.SetHighestProjectItemID(dataAccess.GetHighestTaskItemID());
             ExpandIntoTree(dataAccess.GetTaskItems(true));
             ForAllTreeItems(u => (u as ProjectModelTreeBranchItem).TrackingFlags = ProjectModelTreeBranchItem.ChangeTrackingFlags.Unchanged);
             this.ModelChanged = false;
@@ -332,6 +336,59 @@ namespace ProjectEstimationTool.Model
             }
         }
 
+        /// <summary>
+        ///     Mark an item as deleted
+        /// </summary>
+        /// <param name="taskItemID">
+        /// </param>
+        public void DeleteTaskItem(Int32 projectItemID)
+        {
+            ForAllTreeItems
+            (
+                u =>
+                {
+                    if (u.ProjectItemID == projectItemID)
+                    {
+                        (u as ProjectModelTreeBranchItem).IsDeleted = true;
+                        this.ModelChanged = true;
+                    }
+                }
+            );
+        }
+
+        public void AddTaskItem(Int32 parentProjectItemID, ProjectTreeItemBase newItem)
+        {
+            ForAllTreeItems
+            (
+                u =>
+                {
+                    if (u.ProjectItemID == parentProjectItemID)
+                    {
+                        ProjectModelTreeBranchItem newChild = new ProjectModelTreeBranchItem
+                        {
+                            ProjectItemID = newItem.ProjectItemID,
+                            ItemDescription = newItem.ItemDescription,
+                            ParentProjectItemID = parentProjectItemID,
+                            TreeLevel = newItem.TreeLevel,
+                            MinimumTimeMinutes = newItem.MinimumTimeMinutes,
+                            MaximumTimeMinutes = newItem.MaximumTimeMinutes,
+                            EstimatedTimeMinutes = newItem.EstimatedTimeMinutes,
+                            PercentageComplete = newItem.PercentageComplete,
+                            TimeSpentMinutes = newItem.TimeSpentMinutes,
+                            IsAdded = true
+                        };
+
+                        if (u.Children == null)
+                        {
+                            u.Children = new ObservableCollection<ProjectTreeItemBase>();
+                        }
+                        u.Children.Add(newChild);
+                        this.ModelChanged = true;
+                    }
+                }
+            );
+        }
+
         #endregion // Public accessor methods
 
         #region Protected properties
@@ -369,7 +426,7 @@ namespace ProjectEstimationTool.Model
                 ProjectModelTreeBranchItem parentItem = treeBuilder[item.ParentProjectItemID];
                 if (parentItem.Children == null)
                 {
-                    parentItem.Children = new List<ProjectTreeItemBase>();
+                    parentItem.Children = new ObservableCollection<ProjectTreeItemBase>();
                 }
                 parentItem.Children.Add(item);
             }
@@ -462,11 +519,11 @@ namespace ProjectEstimationTool.Model
                     item.ProjectItemID,
                     item.ParentProjectItemID,
                     item.ItemDescription,
-                    item.EstimatedTimeMinutes,
-                    item.MinimumTimeMinutes,
-                    item.MinimumTimeMinutes,
+                    (Int32)item.EstimatedTimeMinutes,
+                    (Int32)item.MinimumTimeMinutes,
+                    (Int32)item.MaximumTimeMinutes,
                     item.PercentageComplete,
-                    item.TimeSpentMinutes
+                    (Int32)item.TimeSpentMinutes
                 );
                 item.TrackingFlags = ProjectModelTreeBranchItem.ChangeTrackingFlags.Unchanged;
             }
@@ -478,11 +535,11 @@ namespace ProjectEstimationTool.Model
                     item.ProjectItemID,
                     item.ParentProjectItemID,
                     item.ItemDescription,
-                    item.EstimatedTimeMinutes,
-                    item.MinimumTimeMinutes,
-                    item.MinimumTimeMinutes,
+                    (Int32)item.EstimatedTimeMinutes,
+                    (Int32)item.MinimumTimeMinutes,
+                    (Int32)item.MaximumTimeMinutes,
                     item.PercentageComplete,
-                    item.TimeSpentMinutes
+                    (Int32)item.TimeSpentMinutes
                 );
                 item.TrackingFlags = ProjectModelTreeBranchItem.ChangeTrackingFlags.Unchanged;
             }

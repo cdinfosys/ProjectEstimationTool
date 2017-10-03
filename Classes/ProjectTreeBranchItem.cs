@@ -1,21 +1,17 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using System.ComponentModel;
 using ProjectEstimationTool.Properties;
 using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.Classes
 {
-    public class ProjectTreeBranchItem : ProjectTreeItemBase
+    public class ProjectTreeBranchItem : ProjectTreeItemBase//, IDataErrorInfo
     {
         private Int32 mProjectItemID;
-        private Int32 mMinimumTimeMinutes;
-        private Int32 mMaximumTimeMinutes;
-        private Int32 mEstimatedTimeMinutes;
-        private Int32 mTimeSpentMinutes;
+        private Double mMinimumTimeMinutes;
+        private Double mMaximumTimeMinutes;
+        private Double mEstimatedTimeMinutes;
+        private Double mTimeSpentMinutes;
         private Int32 mPercentageComplete;
         private Int32 mParentProjectItemID;
 
@@ -26,6 +22,7 @@ namespace ProjectEstimationTool.Classes
             {
                 if (SetProperty(ref this.mProjectItemID, value))
                 {
+                    base.ProjectItemID = value;
                     FieldUpdated();
                 }
             }
@@ -37,7 +34,7 @@ namespace ProjectEstimationTool.Classes
             set { this.mParentProjectItemID = value; }
         }
 
-        public override Int32 MinimumTimeMinutes
+        public override Double MinimumTimeMinutes
         { 
             get
             {
@@ -49,7 +46,7 @@ namespace ProjectEstimationTool.Classes
                 Int32 result = 0;
                 foreach (ProjectTreeItemBase child in this.Children)
                 {
-                    result += child.MinimumTimeMinutes;
+                    result += (Int32)child.MinimumTimeMinutes;
                 }
                 return result; 
             }
@@ -58,12 +55,14 @@ namespace ProjectEstimationTool.Classes
                 if (SetProperty(ref this.mMinimumTimeMinutes, value))
                 {
                     FieldUpdated();
+                    //OnPropertyChanged(nameof(MaximumTimeMinutes));
+                    //OnPropertyChanged(nameof(EstimatedTimeMinutes));
                     Utility.NotifyTaskItemChanged(this);
                 }
             }
         }
 
-        public override Int32 MaximumTimeMinutes
+        public override Double MaximumTimeMinutes
         { 
             get 
             { 
@@ -72,7 +71,7 @@ namespace ProjectEstimationTool.Classes
                     return this.mMaximumTimeMinutes;
                 }
 
-                Int32 result = 0;
+                Double result = 0.0;
                 foreach (ProjectTreeItemBase child in this.Children)
                 {
                     result += child.MaximumTimeMinutes;
@@ -84,12 +83,14 @@ namespace ProjectEstimationTool.Classes
                 if (SetProperty(ref this.mMaximumTimeMinutes, value))
                 {
                     FieldUpdated();
+                    //OnPropertyChanged(nameof(MinimumTimeMinutes));
+                    //OnPropertyChanged(nameof(EstimatedTimeMinutes));
                     Utility.NotifyTaskItemChanged(this);
                 }
             }
         }
 
-        public override Int32 EstimatedTimeMinutes
+        public override Double EstimatedTimeMinutes
         { 
             get 
             { 
@@ -98,7 +99,7 @@ namespace ProjectEstimationTool.Classes
                     return this.mEstimatedTimeMinutes;
                 }
 
-                Int32 result = 0;
+                Double result = 0.0;
                 foreach (ProjectTreeItemBase child in this.Children)
                 {
                     result += child.EstimatedTimeMinutes;
@@ -110,12 +111,14 @@ namespace ProjectEstimationTool.Classes
                 if (SetProperty(ref this.mEstimatedTimeMinutes, value))
                 {
                     FieldUpdated();
+                    //OnPropertyChanged(nameof(MinimumTimeMinutes));
+                    //OnPropertyChanged(nameof(MaximumTimeMinutes));
                     Utility.NotifyTaskItemChanged(this);
                 }
             }
         }
 
-        public override Int32 TimeSpentMinutes
+        public override Double TimeSpentMinutes
         { 
             get 
             { 
@@ -124,7 +127,7 @@ namespace ProjectEstimationTool.Classes
                     return this.mTimeSpentMinutes;
                 }
 
-                Int32 result = 0;
+                Double result = 0.0;
                 foreach (ProjectTreeItemBase child in this.Children)
                 {
                     result += child.TimeSpentMinutes;
@@ -141,7 +144,7 @@ namespace ProjectEstimationTool.Classes
             }
         }
 
-        protected Int32 ChildrenTotalTimeSpentMinutes
+        protected Double ChildrenTotalTimeSpentMinutes
         {
             get
             {
@@ -150,7 +153,7 @@ namespace ProjectEstimationTool.Classes
                     return this.mTimeSpentMinutes;
                 }
 
-                Int32 result = 0;
+                Double result = 0.0;
                 foreach (ProjectTreeItemBase child in this.Children)
                 {
                     result += child.TimeSpentMinutes;

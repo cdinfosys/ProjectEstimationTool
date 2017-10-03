@@ -70,6 +70,15 @@ namespace ProjectEstimationTool.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Task.
+        /// </summary>
+        public static string DefaultNewTaksDescription {
+            get {
+                return ResourceManager.GetString("DefaultNewTaksDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to TO DO: Project Description.
         /// </summary>
         public static string DefaultRootTaksDescription {
@@ -79,7 +88,7 @@ namespace ProjectEstimationTool.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter a value that is less than 1666.65 hours.
+        ///   Looks up a localized string similar to Enter a value that is below {0:G2} hours.
         /// </summary>
         public static string ErrorGreaterThanMaxHours {
             get {
@@ -88,7 +97,7 @@ namespace ProjectEstimationTool.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter a value that is less than 99999 minutes.
+        ///   Looks up a localized string similar to Enter a value that is below {0:G0} minutes.
         /// </summary>
         public static string ErrorGreaterThanMaxMinutes {
             get {
@@ -97,11 +106,20 @@ namespace ProjectEstimationTool.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter a value that is greater than zero.
+        ///   Looks up a localized string similar to Enter a value that is over  {0:G2} hours..
         /// </summary>
-        public static string ErrorLessThanZero {
+        public static string ErrorLessThanMinimumHours {
             get {
-                return ResourceManager.GetString("ErrorLessThanZero", resourceCulture);
+                return ResourceManager.GetString("ErrorLessThanMinimumHours", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter a value that is over {0:G2} minutes.
+        /// </summary>
+        public static string ErrorLessThanMinimumMinutes {
+            get {
+                return ResourceManager.GetString("ErrorLessThanMinimumMinutes", resourceCulture);
             }
         }
         
@@ -228,6 +246,15 @@ namespace ProjectEstimationTool.Properties {
         public static string SQLiteDataAccess_UnsupportedDatabaseSchemaVersion {
             get {
                 return ResourceManager.GetString("SQLiteDataAccess_UnsupportedDatabaseSchemaVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter a value for this field.
+        /// </summary>
+        public static string TaskItemValidation_EmptyField {
+            get {
+                return ResourceManager.GetString("TaskItemValidation_EmptyField", resourceCulture);
             }
         }
         

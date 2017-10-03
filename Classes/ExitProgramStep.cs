@@ -2,27 +2,29 @@
 using ProjectEstimationTool.Events;
 using ProjectEstimationTool.Model;
 using ProjectEstimationTool.Utilities;
+using ProjectEstimationTool.ViewModels;
 
 namespace ProjectEstimationTool.Classes
 {
     public class ExitProgramStep : ProjectModelProcessingStepBase
     {
-        private ProjectModel mProjectModel;
+        private MainWindowViewModel mMainViewModel;
 
-        public ExitProgramStep(ProjectModel projectModel, ProjectModelProcessingStepBase nextStep)
+        public ExitProgramStep(MainWindowViewModel mainViewModel, ProjectModelProcessingStepBase nextStep)
             :   base(nextStep)
         {
-            this.mProjectModel = projectModel;
+            this.mMainViewModel = mainViewModel;
         }
 
-        public ExitProgramStep(ProjectModel projectModel)
+        public ExitProgramStep(MainWindowViewModel mainViewModel)
         {
-            this.mProjectModel = projectModel;
+            this.mMainViewModel = mainViewModel;
         }
 
         protected override Boolean PerformAction()
         {
-            Utility.EventAggregator.GetEvent<ExitProgramEvent>().Publish(0);
+            //Utility.EventAggregator.GetEvent<ExitProgramEvent>().Publish(0);
+            this.mMainViewModel.CanCloseMainWindow = true;
             return true;
         }
     } // class ExitProgramStep

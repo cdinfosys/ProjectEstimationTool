@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ProjectEstimationTool.Views"
         xmlns:utilities="clr-namespace:ProjectEstimationTool.Utilities"
+        xmlns:classes="clr-namespace:ProjectEstimationTool.Classes"
         mc:Ignorable="d"
         DataContext="{StaticResource MainWindowViewModel}"
         Title="Project Estimation Tool" 
@@ -43,6 +44,7 @@
         </Style>
 
         <utilities:TimeUnitsConverter x:Key="TimeUnitsConverter" MeasurementType="{Binding SelectedTimeUnits}" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.New" Executed="NewCommandHandler"/>
@@ -51,344 +53,415 @@
         <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCommandHandler"/>
         <CommandBinding Command="local:UserInterfaceCommands.Exit" Executed="ExitCommandHandler"/>
         <CommandBinding Command="local:UserInterfaceCommands.About" Executed="AboutCommandHandler"/>
-        <CommandBinding Command="local:UserInterfaceCommands.EditTaskCommand" Executed="AddEditTaskCommandHandler"/>
-
     </Window.CommandBindings>
-    <DockPanel
+    <Grid
         HorizontalAlignment="Stretch"
         VerticalAlignment="Stretch">
-        <ToolBarTray 
-            DockPanel.Dock="Top">
-            <ToolBar
-                Band="0">
-                <Menu>
-                    <MenuItem Header="_File">
-                        <MenuItem Header="_New" Command="ApplicationCommands.New" InputGestureText="Ctrl+N" />
-                        <MenuItem Header="_Open..." Command="ApplicationCommands.Open" InputGestureText="Ctrl+O"/>
-                        <MenuItem Header="_Save" Command="ApplicationCommands.Save" InputGestureText="Ctrl+S"/>
-                        <MenuItem Header="_Close" Command="ApplicationCommands.Close" InputGestureText="Ctrl+W"/>
-                        <Separator/>
-                        <MenuItem Header="E_xit" Command="local:UserInterfaceCommands.Exit" InputGestureText="Alt+F4"/>
-                    </MenuItem>
-                    <MenuItem Header="_Help">
-                        <MenuItem Header="_About..." Command="local:UserInterfaceCommands.About"/>
-                    </MenuItem>
-                </Menu>
-            </ToolBar>
-            <ToolBar Band="1">
-                <ToolBarPanel>
-                    <Button>Save</Button>
-                </ToolBarPanel>
-            </ToolBar>
-            <ToolBar Band="1">
-                <ToolBarPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Button Command="{Binding Path=AddTaskButtonCommand}">Add</Button>
-                        <Button Command="local:UserInterfaceCommands.EditTaskCommand">Edit</Button>
-                        <Button>Delete</Button>
-                    </StackPanel>
-                </ToolBarPanel>
-            </ToolBar>
-        </ToolBarTray>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <StatusBar
-            DockPanel.Dock="Bottom" ScrollViewer.VerticalScrollBarVisibility="Hidden">
-            <StatusBarItem Content="Ready">
-            </StatusBarItem>
-        </StatusBar>
+        <!-- Sun shade for disabling the main view -->
+        <Grid
+            Grid.Column="0"
+            Grid.Row="0"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Background="Black"
+            Opacity="0.6"
+            Panel.ZIndex="500"
+            Visibility="{Binding IsMainWindowDisabled, Converter={StaticResource BooleanToVisibilityConverter}}">
+        </Grid>
 
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <!-- Main view -->
+        <DockPanel
+            Grid.Row="0"
+            Grid.Column="0"
+            Panel.ZIndex="200"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch">
+            <ToolBarTray 
+                DockPanel.Dock="Top">
+                <ToolBar
+                    Band="0">
+                    <Menu>
+                        <MenuItem Header="_File">
+                            <MenuItem Header="_New" Command="ApplicationCommands.New" InputGestureText="Ctrl+N" />
+                            <MenuItem Header="_Open..." Command="ApplicationCommands.Open" InputGestureText="Ctrl+O"/>
+                            <MenuItem Header="_Save" Command="ApplicationCommands.Save" InputGestureText="Ctrl+S"/>
+                            <MenuItem Header="_Close" Command="ApplicationCommands.Close" InputGestureText="Ctrl+W"/>
+                            <Separator/>
+                            <MenuItem Header="E_xit" Command="local:UserInterfaceCommands.Exit" InputGestureText="Alt+F4"/>
+                        </MenuItem>
+                        <MenuItem Header="_Help">
+                            <MenuItem Header="_About..." Command="local:UserInterfaceCommands.About"/>
+                        </MenuItem>
+                    </Menu>
+                </ToolBar>
+                <ToolBar Band="1">
+                    <ToolBarPanel>
+                        <Button>Save</Button>
+                    </ToolBarPanel>
+                </ToolBar>
+                <ToolBar Band="1">
+                    <ToolBarPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Command="{Binding Path=AddTaskCommand}">Add</Button>
 
-            <!-- Tree View-->
-            <Grid 
-                Grid.Column="0"
-                Grid.Row="0"
-                Grid.IsSharedSizeScope="True">
+                            <Button 
+                                Command="{Binding EditTaskCommand}">
+                                Edit
+                            </Button>
+
+                            <Button
+                                Command="{Binding DeleteTaskCommand}">
+                                Delete
+                            </Button>
+                        </StackPanel>
+                    </ToolBarPanel>
+                </ToolBar>
+            </ToolBarTray>
+
+            <StatusBar
+                DockPanel.Dock="Bottom" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                <StatusBarItem Content="Ready">
+                </StatusBarItem>
+            </StatusBar>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <!-- Column headers -->
-                <TreeViewItem Grid.Row="0" BorderThickness="1">
-                    <TreeViewItem.Header>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition SharedSizeGroup="TaskColSize" MinWidth="200"/>
-                                <!-- Placeholders for two columns of ToggleButton -->
-                                <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                <ColumnDefinition SharedSizeGroup="MinimumDurationColSize" MinWidth="80"/>
-                                <ColumnDefinition SharedSizeGroup="EstimatedDurationColSize" MinWidth="80"/>
-                                <ColumnDefinition SharedSizeGroup="MaximumDurationColSize" MinWidth="80"/>
-                                <ColumnDefinition SharedSizeGroup="TimeSpentColSize" MinWidth="80"/>
-                                <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize" MinWidth="80"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Task" HorizontalAlignment="Left" Style="{StaticResource TextBlockBoldStyle}"/>
-                            <!-- Empty TreeViewItem to measure the size of its ToggleButton into the "Toggle" group-->
-                            <TreeViewItem Grid.Column="1" Padding="0"/>
-                            <WrapPanel Grid.Column="5" Orientation="Vertical" Style="{StaticResource HeaderWrapPanelStyle}">
-                                <TextBlock Text="Minimum Duration" Style="{StaticResource TextBlockBoldStyle}"/>
-                                <TextBlock Text="(Minutes)" Style="{StaticResource TextBlockBoldStyle}"/>
-                            </WrapPanel>
-                            <WrapPanel Grid.Column="6" Orientation="Vertical" Style="{StaticResource HeaderWrapPanelStyle}">
-                                <TextBlock Text="Estimated Duration" Style="{StaticResource TextBlockBoldStyle}"/>
-                                <TextBlock Text="(Minutes)" Style="{StaticResource TextBlockBoldStyle}"/>
-                            </WrapPanel>
-                            <WrapPanel Grid.Column="7" Orientation="Vertical" Style="{StaticResource HeaderWrapPanelStyle}">
-                                <TextBlock Text="Maximum Duration" Style="{StaticResource TextBlockBoldStyle}"/>
-                                <TextBlock Text="(Minutes)" Style="{StaticResource TextBlockBoldStyle}"/>
-                            </WrapPanel>
-                            <WrapPanel Grid.Column="8" Orientation="Vertical" Style="{StaticResource HeaderWrapPanelStyle}">
-                                <TextBlock Text="Time Spent" Style="{StaticResource TextBlockBoldStyle}"/>
-                                <TextBlock Text="(Minutes)" Style="{StaticResource TextBlockBoldStyle}"/>
-                            </WrapPanel>
-                            <TextBlock Grid.Column="9" Text="Percentage Complete" Style="{StaticResource TextBlockBoldStyle}"/>
-                        </Grid>
-                    </TreeViewItem.Header>
-                </TreeViewItem>
 
-                <!-- Data rows -->
-                <TreeView
-                    Grid.Row="1"
-                    ItemsSource="{Binding ProjectItemsTreeData}" 
-                    SelectedItemChanged="TreeView_SelectedItemChanged"
-                    BorderBrush="Gray" 
-                    BorderThickness="0 1 0 0">
-                    <TreeView.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Add Parent"/>
-                            <MenuItem Header="Add Child"/>
-                            <MenuItem Header="Add Sibling"/>
-                        </ContextMenu>
-                    </TreeView.ContextMenu>
-                    <TreeView.ItemTemplate>
-
-                        <!-- Level 0 template leaves space for 2 child "Toggle" levels -->
-                        <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition SharedSizeGroup="TaskColSize"/>
-                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                    <ColumnDefinition SharedSizeGroup="MinimumDurationColSize"/>
-                                    <ColumnDefinition SharedSizeGroup="EstimatedDurationColSize"/>
-                                    <ColumnDefinition SharedSizeGroup="MaximumDurationColSize"/>
-                                    <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
-                                    <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
-                                <TextBlock Grid.Column="5" Text="{Binding MinimumTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                <TextBlock Grid.Column="7" Text="{Binding MaximumTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                <TextBlock Grid.Column="8" Text="{Binding TimeSpentMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                <TextBlock Grid.Column="9" Text="{Binding PercentageComplete}" Style="{StaticResource TextBlockPercentageStyle}"/>
-                            </Grid>
-
-                            <!-- Level 1 template leaves space for 1 child "Toggle" level -->
-                            <HierarchicalDataTemplate.ItemTemplate>
-                                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition SharedSizeGroup="TaskColSize"/>
-                                            <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                            <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                            <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition SharedSizeGroup="MinimumDurationColSize"/>
-                                            <ColumnDefinition SharedSizeGroup="EstimatedDurationColSize"/>
-                                            <ColumnDefinition SharedSizeGroup="MaximumDurationColSize"/>
-                                            <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
-                                            <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
-                                        <TextBlock Grid.Column="5" Text="{Binding MinimumTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                        <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                        <TextBlock Grid.Column="7" Text="{Binding MaximumTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                        <TextBlock Grid.Column="8" Text="{Binding TimeSpentMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                        <TextBlock Grid.Column="9" Text="{Binding PercentageComplete}" Style="{StaticResource TextBlockPercentageStyle}"/>
-                                    </Grid>
-
-                                    <!-- Level 2 template -->
-                                    <HierarchicalDataTemplate.ItemTemplate>
-                                        <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition SharedSizeGroup="TaskColSize"/>
-                                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                                    <ColumnDefinition/>
-                                                    <ColumnDefinition/>
-                                                    <ColumnDefinition SharedSizeGroup="MinimumDurationColSize"/>
-                                                    <ColumnDefinition SharedSizeGroup="EstimatedDurationColSize"/>
-                                                    <ColumnDefinition SharedSizeGroup="MaximumDurationColSize"/>
-                                                    <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
-                                                    <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
-                                                <TextBlock Grid.Column="5" Text="{Binding MinimumTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                <TextBlock Grid.Column="7" Text="{Binding MaximumTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                <TextBlock Grid.Column="8" Text="{Binding TimeSpentMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                <TextBlock Grid.Column="9" Text="{Binding PercentageComplete}" Style="{StaticResource TextBlockPercentageStyle}"/>
-                                            </Grid>
-
-                                            <!-- Level 3 template  -->
-                                            <HierarchicalDataTemplate.ItemTemplate>
-                                                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition SharedSizeGroup="TaskColSize"/>
-                                                            <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
-                                                            <ColumnDefinition/>
-                                                            <ColumnDefinition/>
-                                                            <ColumnDefinition/>
-                                                            <ColumnDefinition SharedSizeGroup="MinimumDurationColSize"/>
-                                                            <ColumnDefinition SharedSizeGroup="EstimatedDurationColSize"/>
-                                                            <ColumnDefinition SharedSizeGroup="MaximumDurationColSize"/>
-                                                            <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
-                                                            <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
-                                                        <TextBlock Grid.Column="5" Text="{Binding MinimumTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                        <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                        <TextBlock Grid.Column="7" Text="{Binding MaximumTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                        <TextBlock Grid.Column="8" Text="{Binding TimeSpentMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                        <TextBlock Grid.Column="9" Text="{Binding PercentageComplete}" Style="{StaticResource TextBlockPercentageStyle}"/>
-                                                    </Grid>
-
-                                                    <!-- Level 4 template has no children -->
-                                                    <HierarchicalDataTemplate.ItemTemplate>
-                                                        <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition SharedSizeGroup="TaskColSize"/>
-                                                                    <ColumnDefinition/>
-                                                                    <ColumnDefinition/>
-                                                                    <ColumnDefinition/>
-                                                                    <ColumnDefinition/>
-                                                                    <ColumnDefinition SharedSizeGroup="MinimumDurationColSize"/>
-                                                                    <ColumnDefinition SharedSizeGroup="EstimatedDurationColSize"/>
-                                                                    <ColumnDefinition SharedSizeGroup="MaximumDurationColSize"/>
-                                                                    <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
-                                                                    <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
-                                                                <TextBlock Grid.Column="5" Text="{Binding MinimumTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                                <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                                <TextBlock Grid.Column="7" Text="{Binding MaximumTimeMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                                <TextBlock Grid.Column="8" Text="{Binding TimeSpentMinutes}" Style="{StaticResource TextBlockStyle}"/>
-                                                                <TextBlock Grid.Column="9" Text="{Binding PercentageComplete}" Style="{StaticResource TextBlockPercentageStyle}"/>
-                                                            </Grid>
-                                                        </HierarchicalDataTemplate>
-                                                    </HierarchicalDataTemplate.ItemTemplate>
-                                                </HierarchicalDataTemplate>
-                                            </HierarchicalDataTemplate.ItemTemplate>
-
-                                        </HierarchicalDataTemplate>
-                                    </HierarchicalDataTemplate.ItemTemplate>
-                                </HierarchicalDataTemplate>
-                            </HierarchicalDataTemplate.ItemTemplate>
-                        </HierarchicalDataTemplate>
-                    </TreeView.ItemTemplate>
-                </TreeView>
-            </Grid>
-
-            <!-- Editing -->
-            <Border
-                Grid.Row="0"
-                Grid.Column="1"
-                IsEnabled="{Binding IsSelectedTaskItemEditable}"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                BorderBrush="Gray"
-                BorderThickness="2">
-                <Grid
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                <!-- Tree View-->
+                <Grid 
+                    Grid.Column="0"
+                    Grid.Row="0"
+                    Grid.IsSharedSizeScope="True">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition/>
                     </Grid.RowDefinitions>
-                    <Label 
-                        Grid.Row="0" 
-                        TabIndex="2">
-                        <StackPanel Orientation="Horizontal">
-                            <AccessText 
-                                Text ="_Time Spent ">
-                            </AccessText>
-                            <TextBlock Text="{Binding SelectedTimeUnitsLabel, StringFormat={}({0}):}"/>
-                        </StackPanel>
-                    </Label>
-                    <TextBox
-                        HorizontalAlignment="Center"
-                        Grid.Row="1" 
-                        MaxLength="8"
-                        Width="100"
-                        Tag="{Binding SelectedTimeUnits}"
-                        TextAlignment="Right">
-                        <TextBox.Text>
-                            <Binding 
-                                Path="SelectedTaskItem.TimeSpentMinutes" 
-                                Converter="{StaticResource TimeUnitsConverter}"
-                                ValidatesOnDataErrors="True"
-                                ValidatesOnExceptions="True">
-                                <Binding.ValidationRules>
-                                    <utilities:TimeInputValidation/>
-                                </Binding.ValidationRules>
-                            </Binding>
-                        </TextBox.Text>
-                    </TextBox>
+                    <!-- Column headers -->
+                    <TreeViewItem Grid.Row="0" BorderThickness="1">
+                        <TreeViewItem.Header>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition SharedSizeGroup="TaskColSize" MinWidth="200"/>
+                                    <!-- Placeholders for two columns of ToggleButton -->
+                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                    <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                    <ColumnDefinition SharedSizeGroup="TimeEstimateColSize" MinWidth="80"/>
+                                    <ColumnDefinition SharedSizeGroup="TimeEstimateColSize" MinWidth="80"/>
+                                    <ColumnDefinition SharedSizeGroup="TimeEstimateColSize" MinWidth="80"/>
+                                    <ColumnDefinition SharedSizeGroup="TimeSpentColSize" MinWidth="80"/>
+                                    <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize" MinWidth="80"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Task" HorizontalAlignment="Left" Style="{StaticResource TextBlockBoldStyle}"/>
+                                <!-- Empty TreeViewItem to measure the size of its ToggleButton into the "Toggle" group-->
+                                <TreeViewItem Grid.Column="1" Padding="0"/>
+                                <WrapPanel Grid.Column="6" Orientation="Vertical" Style="{StaticResource HeaderWrapPanelStyle}">
+                                    <TextBlock Text="Estimated Duration" Style="{StaticResource TextBlockBoldStyle}"/>
+                                    <TextBlock Text="{Binding SelectedTimeUnits}" Style="{StaticResource TextBlockBoldStyle}"/>
+                                </WrapPanel>
+                                <WrapPanel Grid.Column="7" Orientation="Vertical" Style="{StaticResource HeaderWrapPanelStyle}">
+                                    <TextBlock Text="Minimum Duration" Style="{StaticResource TextBlockBoldStyle}"/>
+                                    <TextBlock Text="{Binding SelectedTimeUnits}" Style="{StaticResource TextBlockBoldStyle}"/>
+                                </WrapPanel>
+                                <WrapPanel Grid.Column="8" Orientation="Vertical" Style="{StaticResource HeaderWrapPanelStyle}">
+                                    <TextBlock Text="Maximum Duration" Style="{StaticResource TextBlockBoldStyle}"/>
+                                    <TextBlock Text="{Binding SelectedTimeUnits}" Style="{StaticResource TextBlockBoldStyle}"/>
+                                </WrapPanel>
+                                <WrapPanel Grid.Column="9" Orientation="Vertical" Style="{StaticResource HeaderWrapPanelStyle}">
+                                    <TextBlock Text="Time Spent" Style="{StaticResource TextBlockBoldStyle}"/>
+                                    <TextBlock Text="{Binding SelectedTimeUnits}" Style="{StaticResource TextBlockBoldStyle}"/>
+                                </WrapPanel>
+                                <TextBlock Grid.Column="10" Text="Percentage Complete" Style="{StaticResource TextBlockBoldStyle}"/>
+                            </Grid>
+                        </TreeViewItem.Header>
+                    </TreeViewItem>
 
-                    <!-- Percentage Complete slider and friends -->
-                    <Label 
-                        Content="_Percentage Complete:" 
-                        Grid.Row="2" 
-                        TabIndex="2"/>
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        Grid.Row="3"
-                        Grid.Column="0"
-                        Text="{Binding ElementName=percentageCompleteSlider, Path=Value, StringFormat={}{0:N0}%}"/>
-                    <Slider
-                        x:Name="percentageCompleteSlider"
-                        Grid.Row="4"
-                        TabIndex="3"
-                        Minimum="0"
-                        Maximum="100"
-                        Value="{Binding SelectedTaskItem.PercentageComplete}"
-                        VerticalAlignment="Stretch" 
-                        HorizontalAlignment="Center"
-                        Orientation="Vertical" 
-                        ScrollViewer.VerticalScrollBarVisibility="Hidden" 
-                        ScrollViewer.HorizontalScrollBarVisibility="Hidden" 
-                        SmallChange="1" 
-                        LargeChange="10"
-                        TickFrequency="1" 
-                        TickPlacement="Both" 
-                        IsSnapToTickEnabled="True"
-                        AutoToolTipPlacement="TopLeft" 
-                        AutoToolTipPrecision="1">
-                    </Slider>
+                    <!-- Data rows -->
+                    <TreeView
+                        Grid.Row="1"
+                        ItemsSource="{Binding ProjectItemsTreeData}" 
+                        SelectedItemChanged="TreeView_SelectedItemChanged"
+                        BorderBrush="Gray" 
+                        BorderThickness="0 1 0 0">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="IsExpanded" Value="True" />
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                        <TreeView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add Child..." Command="{Binding Path=AddTaskCommand}"/>
+                                <MenuItem Header="Edit Task..." Command="{Binding Path=EditTaskCommand}"/>
+                                <MenuItem Header="Delete Task" Command="{Binding Path=DeleteTaskCommand}"/>
+                            </ContextMenu>
+                        </TreeView.ContextMenu>
+                        <TreeView.ItemTemplate>
+
+                            <!-- Level 0 template leaves space for 2 child "Toggle" levels -->
+                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition SharedSizeGroup="TaskColSize"/>
+                                        <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                        <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                        <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                        <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                        <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                        <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                        <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                        <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                        <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
+                                        <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
+                                    <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                    <TextBlock Grid.Column="7" Text="{Binding MinimumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                    <TextBlock Grid.Column="8" Text="{Binding MaximumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                    <TextBlock Grid.Column="9" Text="{Binding TimeSpentMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                    <TextBlock Grid.Column="10" Text="{Binding PercentageComplete, StringFormat={}{0}%}" Style="{StaticResource TextBlockPercentageStyle}"/>
+                                </Grid>
+
+                                <!-- Level 1 template leaves space for 1 child "Toggle" level -->
+                                <HierarchicalDataTemplate.ItemTemplate>
+                                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition SharedSizeGroup="TaskColSize"/>
+                                                <ColumnDefinition/>
+                                                <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                                <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                                <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                                <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                                <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
+                                                <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
+                                            <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                            <TextBlock Grid.Column="7" Text="{Binding MinimumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                            <TextBlock Grid.Column="8" Text="{Binding MaximumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                            <TextBlock Grid.Column="9" Text="{Binding TimeSpentMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                            <TextBlock Grid.Column="10" Text="{Binding PercentageComplete, StringFormat={}{0}%}" Style="{StaticResource TextBlockPercentageStyle}"/>
+                                        </Grid>
+
+                                        <!-- Level 2 template -->
+                                        <HierarchicalDataTemplate.ItemTemplate>
+                                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition SharedSizeGroup="TaskColSize"/>
+                                                        <ColumnDefinition/>
+                                                        <ColumnDefinition/>
+                                                        <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                                        <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                                        <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                                        <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                        <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                        <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                        <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
+                                                        <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
+                                                    <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                    <TextBlock Grid.Column="7" Text="{Binding MinimumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                    <TextBlock Grid.Column="8" Text="{Binding MaximumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                    <TextBlock Grid.Column="9" Text="{Binding TimeSpentMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                    <TextBlock Grid.Column="10" Text="{Binding PercentageComplete, StringFormat={}{0}%}" Style="{StaticResource TextBlockPercentageStyle}"/>
+                                                </Grid>
+
+                                                <!-- Level 3 template  -->
+                                                <HierarchicalDataTemplate.ItemTemplate>
+                                                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition SharedSizeGroup="TaskColSize"/>
+                                                                <ColumnDefinition/>
+                                                                <ColumnDefinition/>
+                                                                <ColumnDefinition/>
+                                                                <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                                                <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                                                <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                                <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                                <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                                <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
+                                                                <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
+                                                            <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                            <TextBlock Grid.Column="7" Text="{Binding MinimumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                            <TextBlock Grid.Column="8" Text="{Binding MaximumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                            <TextBlock Grid.Column="9" Text="{Binding TimeSpentMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                            <TextBlock Grid.Column="10" Text="{Binding PercentageComplete, StringFormat={}{0}%}" Style="{StaticResource TextBlockPercentageStyle}"/>
+                                                        </Grid>
+
+
+                                                        <!-- Level 4 template  -->
+                                                        <HierarchicalDataTemplate.ItemTemplate>
+                                                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition SharedSizeGroup="TaskColSize"/>
+                                                                        <ColumnDefinition/>
+                                                                        <ColumnDefinition/>
+                                                                        <ColumnDefinition/>
+                                                                        <ColumnDefinition/>
+                                                                        <ColumnDefinition SharedSizeGroup="ToggleColSize"/>
+                                                                        <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                                        <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                                        <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                                        <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
+                                                                        <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
+                                                                    <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                                    <TextBlock Grid.Column="7" Text="{Binding MinimumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                                    <TextBlock Grid.Column="8" Text="{Binding MaximumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                                    <TextBlock Grid.Column="9" Text="{Binding TimeSpentMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                                    <TextBlock Grid.Column="10" Text="{Binding PercentageComplete, StringFormat={}{0}%}" Style="{StaticResource TextBlockPercentageStyle}"/>
+                                                                </Grid>
+
+                                                                <!-- Level 5 template has no children -->
+                                                                <HierarchicalDataTemplate.ItemTemplate>
+                                                                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition SharedSizeGroup="TaskColSize"/>
+                                                                                <ColumnDefinition/>
+                                                                                <ColumnDefinition/>
+                                                                                <ColumnDefinition/>
+                                                                                <ColumnDefinition/>
+                                                                                <ColumnDefinition/>
+                                                                                <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                                                <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                                                <ColumnDefinition SharedSizeGroup="TimeEstimateColSize"/>
+                                                                                <ColumnDefinition SharedSizeGroup="TimeSpentColSize"/>
+                                                                                <ColumnDefinition SharedSizeGroup="PercentageCompleteColSize"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <TextBlock Grid.Column="0" Text="{Binding ItemDescription}" Style="{StaticResource TextBlockTextStyle}"/>
+                                                                            <TextBlock Grid.Column="6" Text="{Binding EstimatedTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                                            <TextBlock Grid.Column="7" Text="{Binding MinimumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                                            <TextBlock Grid.Column="8" Text="{Binding MaximumTimeMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                                            <TextBlock Grid.Column="9" Text="{Binding TimeSpentMinutes, Converter={StaticResource TimeUnitsConverter}}" Style="{StaticResource TextBlockStyle}"/>
+                                                                            <TextBlock Grid.Column="10" Text="{Binding PercentageComplete, StringFormat={}{0}%}" Style="{StaticResource TextBlockPercentageStyle}"/>
+                                                                        </Grid>
+                                                                    </HierarchicalDataTemplate>
+                                                                </HierarchicalDataTemplate.ItemTemplate>
+                                                            </HierarchicalDataTemplate>
+                                                        </HierarchicalDataTemplate.ItemTemplate>
+                                                    </HierarchicalDataTemplate>
+                                                </HierarchicalDataTemplate.ItemTemplate>
+                                            </HierarchicalDataTemplate>
+                                        </HierarchicalDataTemplate.ItemTemplate>
+                                    </HierarchicalDataTemplate>
+                                </HierarchicalDataTemplate.ItemTemplate>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
                 </Grid>
-            </Border>
-        </Grid>
-    </DockPanel>
+
+                <!-- Editing -->
+                <Border
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    IsEnabled="{Binding IsSelectedTaskItemEditable}"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    BorderBrush="Gray"
+                    BorderThickness="2">
+                    <Grid
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Label 
+                            Grid.Row="0" 
+                            TabIndex="2">
+                            <StackPanel Orientation="Horizontal">
+                                <AccessText 
+                                    Text ="_Time Spent ">
+                                </AccessText>
+                                <TextBlock Text="{Binding SelectedTimeUnitsLabel, StringFormat={}({0}):}"/>
+                            </StackPanel>
+                        </Label>
+                        <TextBox
+                            HorizontalAlignment="Center"
+                            Grid.Row="1" 
+                            MaxLength="8"
+                            Width="100"
+                            Tag="{Binding SelectedTimeUnits}"
+                            TextAlignment="Right">
+                            <TextBox.Text>
+                                <Binding 
+                                    Path="SelectedTaskItem.TimeSpentMinutes" 
+                                    Converter="{StaticResource TimeUnitsConverter}"
+                                    ValidatesOnDataErrors="True"
+                                    ValidatesOnExceptions="True">
+                                    <Binding.ValidationRules>
+                                        <utilities:TimeInputValidation/>
+                                    </Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
+
+                        <!-- Percentage Complete slider and friends -->
+                        <Label 
+                            Content="_Percentage Complete:" 
+                            Grid.Row="2" 
+                            TabIndex="2"/>
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            Text="{Binding ElementName=percentageCompleteSlider, Path=Value, StringFormat={}{0:N0}%}"/>
+                        <Slider
+                            x:Name="percentageCompleteSlider"
+                            Grid.Row="4"
+                            TabIndex="3"
+                            Minimum="0"
+                            Maximum="100"
+                            Value="{Binding SelectedTaskItem.PercentageComplete}"
+                            VerticalAlignment="Stretch" 
+                            HorizontalAlignment="Center"
+                            Orientation="Vertical" 
+                            ScrollViewer.VerticalScrollBarVisibility="Hidden" 
+                            ScrollViewer.HorizontalScrollBarVisibility="Hidden" 
+                            SmallChange="1" 
+                            LargeChange="10"
+                            TickFrequency="1" 
+                            TickPlacement="Both" 
+                            IsSnapToTickEnabled="True"
+                            AutoToolTipPlacement="TopLeft" 
+                            AutoToolTipPrecision="1">
+                        </Slider>
+                    </Grid>
+                </Border>
+            </Grid>
+        </DockPanel>
+    </Grid>
 </Window>

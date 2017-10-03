@@ -124,13 +124,13 @@
     <value>TO DO: Project Description</value>
   </data>
   <data name="ErrorGreaterThanMaxHours" xml:space="preserve">
-    <value>Enter a value that is less than 1666.65 hours</value>
+    <value>Enter a value that is below {0:G2} hours</value>
   </data>
   <data name="ErrorGreaterThanMaxMinutes" xml:space="preserve">
-    <value>Enter a value that is less than 99999 minutes</value>
+    <value>Enter a value that is below {0:G0} minutes</value>
   </data>
-  <data name="ErrorLessThanZero" xml:space="preserve">
-    <value>Enter a value that is greater than zero</value>
+  <data name="ErrorLessThanMinimumHours" xml:space="preserve">
+    <value>Enter a value that is over  {0:G2} hours.</value>
   </data>
   <data name="ErrorNotNumeric" xml:space="preserve">
     <value>Value must be numeric</value>
@@ -176,5 +176,14 @@
   </data>
   <data name="SQLiteDataAccess_ProjectVersionNotFound" xml:space="preserve">
     <value>Project version number not found</value>
+  </data>
+  <data name="ErrorLessThanMinimumMinutes" xml:space="preserve">
+    <value>Enter a value that is over {0:G2} minutes</value>
+  </data>
+  <data name="TaskItemValidation_EmptyField" xml:space="preserve">
+    <value>Enter a value for this field</value>
+  </data>
+  <data name="DefaultNewTaksDescription" xml:space="preserve">
+    <value>Task</value>
   </data>
 </root>
