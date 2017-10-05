@@ -18,10 +18,12 @@
         </Style>
         <Style x:Key="TextBlockStyle" TargetType="{x:Type TextBlock}">
             <Setter Property="Margin" Value="5 0 5 0"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="HorizontalAlignment" Value="Right"/>
         </Style>
         <Style x:Key="TextBlockTextStyle" TargetType="{x:Type TextBlock}">
             <Setter Property="Margin" Value="5 0 5 0"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
         </Style>
         <Style x:Key="TextBlockPercentageStyle" TargetType="{x:Type TextBlock}">
@@ -30,7 +32,11 @@
         </Style>
         <Style x:Key="TextBlockBoldStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource TextBlockStyle}">
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ToolbarButtonImage" TargetType="{x:Type Image}">
+            <Setter Property="Margin" Value="2"/>
         </Style>
 
         <Style TargetType="TextBox">
@@ -45,6 +51,7 @@
 
         <utilities:TimeUnitsConverter x:Key="TimeUnitsConverter" MeasurementType="{Binding SelectedTimeUnits}" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <utilities:ProjectDayToTextConverter x:Key="ProjectDayToTextConverter"/>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.New" Executed="NewCommandHandler"/>
@@ -71,7 +78,7 @@
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             Background="Black"
-            Opacity="0.6"
+            Opacity="0.3"
             Panel.ZIndex="500"
             Visibility="{Binding IsMainWindowDisabled, Converter={StaticResource BooleanToVisibilityConverter}}">
         </Grid>
@@ -102,23 +109,63 @@
                     </Menu>
                 </ToolBar>
                 <ToolBar Band="1">
-                    <ToolBarPanel>
-                        <Button>Save</Button>
+                    <ToolBarPanel Orientation="Horizontal">
+                        <Button 
+                            Command="ApplicationCommands.Open" 
+                            ToolTip="Load project">
+                            <Image 
+                                Style="{StaticResource ToolbarButtonImage}"
+                                HorizontalAlignment="Center" 
+                                VerticalAlignment="Center" 
+                                Stretch="None" 
+                                Source="/ProjectEstimationTool;component/Resources/OpenFileIcon1.png"/>
+                        </Button>
+                        <Button 
+                            Command="ApplicationCommands.Save" 
+                            ToolTip="Save project">
+                            <Image 
+                                Style="{StaticResource ToolbarButtonImage}"
+                                HorizontalAlignment="Center" 
+                                VerticalAlignment="Center" 
+                                Stretch="None" 
+                                Source="/ProjectEstimationTool;component/Resources/SaveFileIcon1.png"/>
+                        </Button>
                     </ToolBarPanel>
                 </ToolBar>
                 <ToolBar Band="1">
                     <ToolBarPanel>
                         <StackPanel Orientation="Horizontal">
-                            <Button Command="{Binding Path=AddTaskCommand}">Add</Button>
+                            <Button 
+                                Command="{Binding Path=AddTaskCommand}"
+                                ToolTip="Add child task">
+                                <Image 
+                                    Style="{StaticResource ToolbarButtonImage}"
+                                    HorizontalAlignment="Center" 
+                                    VerticalAlignment="Center" 
+                                    Stretch="None" 
+                                    Source="/ProjectEstimationTool;component/Resources/AddRec.ico"/>
+                            </Button>
 
                             <Button 
-                                Command="{Binding EditTaskCommand}">
-                                Edit
+                                Command="{Binding EditTaskCommand}"
+                                ToolTip="Edit selected task">
+                                <Image 
+                                    Style="{StaticResource ToolbarButtonImage}"
+                                    HorizontalAlignment="Center" 
+                                    VerticalAlignment="Center" 
+                                    Stretch="None" 
+                                    Source="/ProjectEstimationTool;component/Resources/EditRec.ico"/>
                             </Button>
 
                             <Button
-                                Command="{Binding DeleteTaskCommand}">
-                                Delete
+                                Command="{Binding DeleteTaskCommand}"
+                                ToolTip="Delete selected task">
+                                <Image 
+                                    Style="{StaticResource ToolbarButtonImage}"
+                                    HorizontalAlignment="Center" 
+                                    VerticalAlignment="Center" 
+                                    Stretch="None" 
+                                    Source="/ProjectEstimationTool;component/Resources/DeleteRec.ico"/>
                             </Button>
                         </StackPanel>
                     </ToolBarPanel>
@@ -380,7 +427,6 @@
                 <Border
                     Grid.Row="0"
                     Grid.Column="1"
-                    IsEnabled="{Binding IsSelectedTaskItemEditable}"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     BorderBrush="Gray"
@@ -396,11 +442,72 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
+
+                        <!-- Control for adding project days -->
+                        <Border
+                            BorderThickness="2"
+                            Padding="4"
+                            BorderBrush="Black">
+                            <StackPanel
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <Border
+                                    VerticalAlignment="Stretch"
+                                    BorderThickness="1"
+                                    BorderBrush="Black">
+                                    <StackPanel
+                                        Margin="5"
+                                        Orientation="Vertical"
+                                        VerticalAlignment="Center">
+                                        <TextBlock 
+                                            TextAlignment="Center" 
+                                            Margin="0,5"
+                                            Text="Project Day"
+                                            FontFamily="Arial"
+                                            FontWeight="Bold"
+                                            FontSize="14"
+                                            MinWidth="80"/>
+                                        <TextBlock 
+                                            Margin="0,5"
+                                            FontFamily="Arial"
+                                            Foreground="Red"
+                                            FontSize="24"
+                                            TextAlignment="Center" 
+                                            HorizontalAlignment="Stretch"
+                                            Text="{Binding ProjectDay, Converter={StaticResource ProjectDayToTextConverter}}"
+                                        />
+                                    </StackPanel>
+                                </Border>
+                                <Button
+                                    MinWidth="80"
+                                    MinHeight="80"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    ToolTip="Add work day"
+                                    Command="{Binding AddWorkDayCommand}">
+                                    <Viewbox Stretch="Uniform">
+                                        <TextBlock 
+                                            Text="+"
+                                            Foreground="Blue"
+                                            TextAlignment="Center"
+                                            FontFamily="Arial"
+                                            FontSize="60"
+                                            FontWeight="Bold"/>
+                                    </Viewbox>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                        <!-- Text box for entering the amount of time spent -->
                         <Label 
-                            Grid.Row="0" 
+                            IsEnabled="{Binding IsSelectedTaskItemEditable}"
+                            Grid.Row="1" 
                             TabIndex="2">
                             <StackPanel Orientation="Horizontal">
                                 <AccessText 
@@ -411,7 +518,8 @@
                         </Label>
                         <TextBox
                             HorizontalAlignment="Center"
-                            Grid.Row="1" 
+                            Grid.Row="2" 
+                            IsEnabled="{Binding IsSelectedTaskItemEditable}"
                             MaxLength="8"
                             Width="100"
                             Tag="{Binding SelectedTimeUnits}"
@@ -432,16 +540,19 @@
                         <!-- Percentage Complete slider and friends -->
                         <Label 
                             Content="_Percentage Complete:" 
-                            Grid.Row="2" 
+                            IsEnabled="{Binding IsSelectedTaskItemEditable}"
+                            Grid.Row="3" 
                             TabIndex="2"/>
                         <TextBlock
                             HorizontalAlignment="Center"
-                            Grid.Row="3"
+                            IsEnabled="{Binding IsSelectedTaskItemEditable}"
+                            Grid.Row="4"
                             Grid.Column="0"
                             Text="{Binding ElementName=percentageCompleteSlider, Path=Value, StringFormat={}{0:N0}%}"/>
                         <Slider
                             x:Name="percentageCompleteSlider"
-                            Grid.Row="4"
+                            IsEnabled="{Binding IsSelectedTaskItemEditable}"
+                            Grid.Row="5"
                             TabIndex="3"
                             Minimum="0"
                             Maximum="100"

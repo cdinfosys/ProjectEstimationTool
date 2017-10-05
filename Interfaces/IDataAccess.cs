@@ -91,12 +91,20 @@ namespace ProjectEstimationTool.Interfaces
         void LogWorkDay(DateTime workDayDate);
 
         /// <summary>
+        ///     Update the time spent on a project by a specified work day.
+        /// </summary>
+        /// <timeSpentMinutes>
+        ///     Time spent on the project when the work day is logged.
+        /// </timeSpentMinutes>
+        void SetWorkDayTimeSpent(Int32 timeSpentMinutes);
+
+        /// <summary>
         ///     Gets a list of the days on which work was logged.
         /// </summary>
         /// <returns>
         ///     Returns a list of dates from the DaysWorked table.
         /// </returns>
-        IEnumerable<DateTime> GetWorkDays();
+        IEnumerable<DaysWorkedDTO> GetWorkDays();
 
         /// <summary>
         /// Creates a new project version record.
@@ -125,5 +133,20 @@ namespace ProjectEstimationTool.Interfaces
         /// Gets the version number of the project.
         /// </summary>
         Int32 ProjectVersion { get; }
+
+        /// <summary>
+        /// Gets the start date of the project.
+        /// </summary>
+        DateTime ProjectStartDate { get; }
+
+        /// <summary>
+        ///     Gets the date of the current work day.
+        /// </summary>
+        DateTime WorkDayDate { get; }
+
+        /// <summary>
+        ///     Get the ID of the current work day.
+        /// </summary>
+        Int32 WorkDayID { get; }
     } // interface IDataAccess
 } // namespace ProjectEstimationTool.Interfaces

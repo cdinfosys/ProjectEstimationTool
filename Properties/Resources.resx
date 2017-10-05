@@ -186,4 +186,7 @@
   <data name="DefaultNewTaksDescription" xml:space="preserve">
     <value>Task</value>
   </data>
+  <data name="SQLiteDataAccess_NoCurrentWorkDaySet" xml:space="preserve">
+    <value>Set up a work day for logging time against</value>
+  </data>
 </root>

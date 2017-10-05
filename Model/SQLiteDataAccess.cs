@@ -1,14 +1,12 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ProjectEstimationTool.Interfaces;
-using ProjectEstimationTool.Classes;
-using ProjectEstimationTool.Properties;
-using System.Data.SQLite;
 using System.Data;
+using System.Data.SQLite;
+using System.IO;
+using System.Linq;
+using ProjectEstimationTool.Classes;
+using ProjectEstimationTool.Interfaces;
+using ProjectEstimationTool.Properties;
 using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.Model
@@ -23,7 +21,8 @@ namespace ProjectEstimationTool.Model
             DatabaseSchemaVersionNotFound,
             UnsupportedDatabaseSchemaVersion,
             DatabaseLastUpdateDateTimeNotFound,
-            ProjectVersionNotFound
+            ProjectVersionNotFound,
+            NoCurrentWorkDaySet,
         }
 
         private String mFilePath = null;
@@ -71,6 +70,10 @@ namespace ProjectEstimationTool.Model
                         errorMessage = Resources.SQLiteDataAccess_ProjectVersionNotFound;
                         break;
 
+                    case ErrorCode.NoCurrentWorkDaySet:
+                        errorMessage = Resources.SQLiteDataAccess_NoCurrentWorkDaySet;
+                        break;
+
                     default:
                         errorMessage = Resources.UndefinedError;
                         break;
@@ -98,7 +101,16 @@ namespace ProjectEstimationTool.Model
         /// </summary>
         private const Int32 PROJECT_METADATA_ID_LAST_UPDATE_DATE = 2;
 
+        /// <summary>
+        ///     ID of the record in the ProjectMetaData table that stores the date when the project started
+        /// </summary>
+        private const Int32 PROJECT_METADATA_ID_START_DATE = 3;
+
+        /// <summary>
+        ///     ID of the current project database schema version
+        /// </summary>
         private const Int32 CURRENT_DATABASE_SCHEMA_VERSION_ID = 1;
+
 
         private const String SQL_CREATE_PROJECT_METADATA_TABLE = 
         @"
@@ -116,8 +128,9 @@ namespace ProjectEstimationTool.Model
         @"
             CREATE TABLE DaysWorked
             (
-                DaysWorked INTEGER NOT NULL PRIMARY KEY,
-                CalendarDate DATETIME NOT NULL
+                DaysWorkedID INTEGER NOT NULL PRIMARY KEY,
+                CalendarDate DATETIME NOT NULL,
+                TimeSpentMinutes INTEGER NOT NULL
             )
         ";
 
@@ -196,6 +209,20 @@ namespace ProjectEstimationTool.Model
         ";
 
         private const String SQL_STORE_DATABASE_LAST_UPDATED_DATE = 
+        @"
+            INSERT INTO ProjectMetaData
+            (
+                ProjectMetaDataID,
+                DateTimeValue
+            )
+            VALUES
+            (
+                @projectMetaDataID,
+                @dateTimeValue
+            )
+        ";
+
+        private const String SQL_STORE_PROJECT_START_DATE = 
         @"
             INSERT INTO ProjectMetaData
             (
@@ -290,13 +317,28 @@ namespace ProjectEstimationTool.Model
                 TaskItemID = @taskItemID
         ";
 
-        private const String SQL_LOG_WORK_DAY = @"INSERT INTO DaysWorked(CalendarDate) VALUES (@calendarDate)";
+        private const String SQL_GET_CURRENT_WORK_DAY = 
+        @"
+            SELECT 
+                DaysWorkedID,
+                CalendarDate
+            FROM 
+                DaysWorked
+            ORDER BY
+                DaysWorkedID DESC
+            LIMIT 1
+        ";
+
+        private const String SQL_LOG_WORK_DAY = @"INSERT INTO DaysWorked(CalendarDate, TimeSpentMinutes) VALUES (@calendarDate, -1)";
+
+        private const String SQL_UPDATE_WORK_DAY_TIME_SPENT = @"UPDATE DaysWorked SET TimeSpentMinutes = @timeSpentMinutes WHERE DaysWorkedID=@daysWorkedID";
 
         private const String SQL_GET_WORK_DAYS =
         @"
             SELECT
                 DaysWorkedID,
-                CalendarDate
+                CalendarDate,
+                TimeSpentMinutes
             FROM
                 DaysWorked
         ";
@@ -338,6 +380,21 @@ namespace ProjectEstimationTool.Model
         ///     Version of the project.
         /// </summary>
         private Int32 mCurrentProjectVersionID = 0;
+
+        /// <summary>
+        ///     ID of the last record in the DaysWorked table.
+        /// </summary>
+        private Int32 mCurrentWorkDayID = 0;
+
+        /// <summary>
+        ///     Date of the current work day.
+        /// </summary>
+        private DateTime mCurrentWorkDayDate;
+
+        /// <summary>
+        ///     Start date of the project.
+        /// </summary>
+        private DateTime mProjectStartDate;
         #endregion Private data members
 
         #region IDataAccess implementation
@@ -414,12 +471,22 @@ namespace ProjectEstimationTool.Model
                 dbCommand.ExecuteNonQuery();
             }
 
-            // Store the value that identifies the schema layout.
+            // Store the value that identifies the date when the project was last updated.
             using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
             {
                 dbCommand.CommandType = CommandType.Text;
                 dbCommand.CommandText = SQL_STORE_DATABASE_LAST_UPDATED_DATE;
                 dbCommand.Parameters.Add(new SQLiteParameter("@projectMetaDataID", PROJECT_METADATA_ID_LAST_UPDATE_DATE));
+                dbCommand.Parameters.Add(new SQLiteParameter("@dateTimeValue", DateTime.UtcNow));
+                dbCommand.ExecuteNonQuery();
+            }
+
+            // Store the project start date.
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_STORE_PROJECT_START_DATE;
+                dbCommand.Parameters.Add(new SQLiteParameter("@projectMetaDataID", PROJECT_METADATA_ID_START_DATE));
                 dbCommand.Parameters.Add(new SQLiteParameter("@dateTimeValue", DateTime.UtcNow));
                 dbCommand.ExecuteNonQuery();
             }
@@ -461,6 +528,9 @@ namespace ProjectEstimationTool.Model
 
             // Get the version number of the database
             FetchCurrentProjectVersion();
+
+            // Get the record ID of the current work day.
+            GetCurrentWorkDay();
         }
 
         public void CreateProjectVersion()
@@ -474,6 +544,30 @@ namespace ProjectEstimationTool.Model
             }
 
             FetchCurrentProjectVersion();
+        }
+
+        private void GetCurrentWorkDay()
+        {
+            SQLiteConnection dbConnection = GetConnection();
+
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_GET_CURRENT_WORK_DAY;
+                using (SQLiteDataReader reader = dbCommand.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
+                {
+                    if (reader.Read())
+                    {
+                        this.mCurrentWorkDayID = reader.GetInt32(reader.GetOrdinal("DaysWorkedID"));
+                        this.mCurrentWorkDayDate = reader.GetDateTime(reader.GetOrdinal("CalendarDate"));
+                    }
+                    else
+                    {
+                        this.mCurrentWorkDayID = 0;
+                        this.mCurrentWorkDayDate = DateTime.MinValue;
+                    }
+                }
+            }
         }
 
         protected void FetchCurrentProjectVersion()
@@ -712,11 +806,20 @@ namespace ProjectEstimationTool.Model
                 dbCommand.Parameters.Add(new SQLiteParameter("@calendarDate", workDayDate.Date));
                 dbCommand.ExecuteNonQuery();
             }
+
+            GetCurrentWorkDay();
         }
 
-        public IEnumerable<DateTime> GetWorkDays()
+        public DateTime WorkDayDate => this.mCurrentWorkDayDate;
+
+        /// <summary>
+        ///     Get the ID of the current work day.
+        /// </summary>
+        public Int32 WorkDayID => this.mCurrentWorkDayID;
+
+        public IEnumerable<DaysWorkedDTO> GetWorkDays()
         {
-            List<DateTime> result = new List<DateTime>();
+            List<DaysWorkedDTO> result = new List<DaysWorkedDTO>();
 
             SQLiteConnection dbConnection = GetConnection();
             using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
@@ -727,12 +830,22 @@ namespace ProjectEstimationTool.Model
                 {
                     Int32 colIndexDaysWorkedID = reader.GetOrdinal("DaysWorkedID");
                     Int32 colIndexCalendarDate = reader.GetOrdinal("CalendarDate");
+                    Int32 colIndexTimeSpentMinutes = reader.GetOrdinal("TimeSpentMinutes");
 
-                    Dictionary<Int32, DateTime> dates = new Dictionary<Int32, DateTime>();
+                    Dictionary<Int32, DaysWorkedDTO> dates = new Dictionary<Int32, DaysWorkedDTO>();
 
                     while (reader.Read())
                     {
-                        dates.Add(reader.GetInt32(colIndexDaysWorkedID), reader.GetDateTime(colIndexCalendarDate));
+                        dates.Add
+                        (
+                            reader.GetInt32(colIndexDaysWorkedID), 
+                            new DaysWorkedDTO
+                            (
+                                reader.GetInt32(colIndexDaysWorkedID), 
+                                reader.GetDateTime(colIndexCalendarDate),
+                                reader.GetInt32(colIndexTimeSpentMinutes)
+                            )
+                        );
                     }
 
                     List<Int32>sortedKeys = dates.Keys.ToList();
@@ -745,6 +858,31 @@ namespace ProjectEstimationTool.Model
             }
 
             return result;
+        }
+
+        /// <summary>
+        ///     Update the time spent on a project by a specified work day.
+        /// </summary>
+        /// <timeSpentMinutes>
+        ///     Time spent on the project when the work day is logged.
+        /// </timeSpentMinutes>
+        public void SetWorkDayTimeSpent(Int32 timeSpentMinutes)
+        {
+            if (this.mCurrentWorkDayID < 1)
+            {
+                throw new Exception<SQLiteDataAccessExceptionArgs>(new SQLiteDataAccessExceptionArgs(SQLiteDataAccessExceptionArgs.ErrorCode.NoCurrentWorkDaySet));
+            }
+
+            SQLiteConnection dbConnection = GetConnection();
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_UPDATE_WORK_DAY_TIME_SPENT;
+                dbCommand.Parameters.Add(new SQLiteParameter("@daysWorkedID", this.mCurrentWorkDayID));
+                dbCommand.Parameters.Add(new SQLiteParameter("@timeSpentMinutes", Math.Max(0, timeSpentMinutes)));
+                dbCommand.ExecuteNonQuery();
+            }
+            
         }
 
         public Int32 GetHighestTaskItemID()
@@ -803,6 +941,11 @@ namespace ProjectEstimationTool.Model
         /// Gets the version number of the project.
         /// </summary>
         public Int32 ProjectVersion => this.mCurrentProjectVersionID;
+
+        /// <summary>
+        /// Gets the start date of the project.
+        /// </summary>
+        public DateTime ProjectStartDate => this.mProjectStartDate;
         #endregion Public properties
 
         #region Private helper methods

@@ -232,6 +232,15 @@ namespace ProjectEstimationTool.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Set up a work day for logging time against.
+        /// </summary>
+        public static string SQLiteDataAccess_NoCurrentWorkDaySet {
+            get {
+                return ResourceManager.GetString("SQLiteDataAccess_NoCurrentWorkDaySet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Project version number not found.
         /// </summary>
         public static string SQLiteDataAccess_ProjectVersionNotFound {

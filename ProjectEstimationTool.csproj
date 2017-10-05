@@ -115,6 +115,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\CloseProjectModelStep.cs" />
+    <Compile Include="Classes\DaysWorkedDTO.cs" />
     <Compile Include="Classes\DisableMainWindowStep.cs" />
     <Compile Include="Classes\PropertyValidationErrorsCollection.cs" />
     <Compile Include="Events\ShowAddItemEvent.cs" />
@@ -144,6 +145,7 @@
     <Compile Include="Model\ProjectModel.cs" />
     <Compile Include="Model\SQLiteDataAccess.cs" />
     <Compile Include="Utilities\IntDescendingSortComparer.cs" />
+    <Compile Include="Utilities\ProjectDayToTextConverter.cs" />
     <Compile Include="Utilities\TimeInputValidation.cs" />
     <Compile Include="Utilities\TimeUnitsConverter.cs" />
     <Compile Include="Utilities\Utility.cs" />
@@ -200,7 +202,25 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\OpenFileIcon1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\SaveFileIcon1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\AddRec.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\DeleteRec.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\EditRec.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\System.Data.SQLite.Core.1.0.105.2\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('packages\System.Data.SQLite.Core.1.0.105.2\build\net46\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

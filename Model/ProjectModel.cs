@@ -139,6 +139,11 @@ namespace ProjectEstimationTool.Model
         }
 
         /// <summary>
+        ///     Gets the ID of the current work day.
+        /// </summary>
+        public Int32 CurrentWorkDayID => (this.mDataAccess == null) ? -1 : this.mDataAccess.WorkDayID;
+
+        /// <summary>
         ///     Gets a flag 
         /// </summary>
         public Boolean ProjectPathSet
@@ -148,6 +153,11 @@ namespace ProjectEstimationTool.Model
                 return this.mDataAccess != null;
             }
         }
+
+        /// <summary>
+        ///     Gets a flag that indicates of the project model is active. The model is only active if it is linked to a data access object.
+        /// </summary>
+        public Boolean IsProjectModelActive => (this.mDataAccess != null);
         #endregion Public properties
 
         #region Public accessor methods
@@ -200,62 +210,8 @@ namespace ProjectEstimationTool.Model
                 ItemDescription = Resources.DefaultRootTaksDescription
             };
             ProjectTreeItemBase.SetHighestProjectItemID(1);
+            this.mDataAccess = DataAccessObject;
 
-            /*
-            mProjectItemsRoot =  new ProjectModelTreeBranchItem()
-            {
-                ProjectItemID = 1,
-                ItemDescription = "Root!!",
-                Children = new List<ProjectTreeItemBase>()
-                {
-                    new ProjectModelTreeBranchItem()
-                    {
-                        ProjectItemID = 2,
-                        ItemDescription = "Root",
-                        Children = new List<ProjectTreeItemBase>()
-                        {
-                            new ProjectModelTreeBranchItem()
-                            {
-                                ProjectItemID = 3,
-                                ItemDescription = "Root",
-                                Children = new List<ProjectTreeItemBase>()
-                                {
-                                    new ProjectModelTreeBranchItem()
-                                    {
-                                        ProjectItemID = 4,
-                                        ItemDescription = "Root",
-                                        Children = new List<ProjectTreeItemBase>()
-                                        {
-                                            new ProjectModelTreeBranchItem()
-                                            {
-                                                ProjectItemID = 5,
-                                                ItemDescription = "Child 1",
-                                                EstimatedTimeMinutes = 60,
-                                                MinimumTimeMinutes = 30,
-                                                MaximumTimeMinutes = 80,
-                                                PercentageComplete = 50,
-                                                TimeSpentMinutes = 40
-                                            },
-
-                                            new ProjectModelTreeBranchItem()
-                                            {
-                                                ProjectItemID = 6,
-                                                ItemDescription = "Child 2",
-                                                EstimatedTimeMinutes = 90,
-                                                MinimumTimeMinutes = 60,
-                                                MaximumTimeMinutes = 120,
-                                                PercentageComplete = 20,
-                                                TimeSpentMinutes = 60
-                                            },
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-            */
             ForAllTreeItems(u => (u as ProjectModelTreeBranchItem).TrackingFlags = ProjectModelTreeBranchItem.ChangeTrackingFlags.Added);
 
             ModelChanged = false;

@@ -24,6 +24,7 @@ namespace ProjectEstimationTool.ViewModels
         private ICommand mAddTaskCommand;
         private ICommand mEditTaskCommand;
         private ICommand mDeleteTaskCommand;
+        private ICommand mAddWorkDay;
         private Boolean mIsEditingExistingItem;
         private Boolean mIsMainWindowDisabled = false;
 
@@ -106,6 +107,8 @@ namespace ProjectEstimationTool.ViewModels
         #region Public properties
         public PropertyValidationErrorsCollection AddEditTaskDialogErrorsCollection => this.mAddEditTaskDialogErrorsCollection;
 
+        public ICommand AddWorkDayCommand => this.mAddWorkDay ?? (mAddWorkDay = new DelegateCommand(OnAddWorkDayCommand, IsAddWorkDayCommandEnabled));
+
         public ICommand AddEditTaskDialogOkButtonCommand => this.mAddEditTaskDialogOkButtonCommand ?? (mAddEditTaskDialogOkButtonCommand = new DelegateCommand(OnAddEditTaskDialogOkButtonCommand, IsAddEditTaskDialogOkButtonCommandEnabled));
 
         public ICommand AddTaskCommand => this.mAddTaskCommand ?? (mAddTaskCommand = new DelegateCommand(OnAddTaskCommand, IsAddTaskCommandEnabled));
@@ -113,6 +116,8 @@ namespace ProjectEstimationTool.ViewModels
         public ICommand EditTaskCommand => this.mEditTaskCommand ?? (mEditTaskCommand = new DelegateCommand(OnEditTaskCommand, IsEditTaskCommandEnabled));
 
         public ICommand DeleteTaskCommand => this.mDeleteTaskCommand ?? (mDeleteTaskCommand = new DelegateCommand(OnDeleteTaskCommand, IsDeleteTaskCommandEnabled));
+
+        public Int32 ProjectDay => (this.ProjectModel != null) ? this.ProjectModel.CurrentWorkDayID : 0;
 
         public ObservableCollection<ProjectTreeItemBase> ProjectItemsTreeData
         {
@@ -123,6 +128,21 @@ namespace ProjectEstimationTool.ViewModels
             private set
             {
                 SetProperty(ref this.mProjectItemsTreeData, value);
+            }
+        }
+
+        public Boolean IsSelectedTaskItemEditable
+        {
+            get
+            {
+                // Must have a current working day to edit the effort.
+                if (this.ProjectModel.CurrentWorkDayID < 1) return false;
+
+                // A task item must be selected in the tree
+                if (this.SelectedTaskItem == null) return false;
+
+                // Only leaf items are editable
+                return (this.SelectedTaskItem as ProjectTreeItemBase).IsLeaf;
             }
         }
 
@@ -247,6 +267,8 @@ namespace ProjectEstimationTool.ViewModels
             {
                 this.ProjectItemsTreeData.Clear();
             }
+
+            (this.AddWorkDayCommand as DelegateCommand).RaiseCanExecuteChanged();
         }
 
         private void OnTaskItemChanged(Object sender, String propertyName)
@@ -388,6 +410,16 @@ namespace ProjectEstimationTool.ViewModels
                 this.mAddEditTaskDialogErrorsCollection.ClearError(nameof(ProjectTreeItemBase.EstimatedTimeMinutes));
             }
             return !this.mAddEditTaskDialogErrorsCollection.HasErrors;
+        }
+
+        private void OnAddWorkDayCommand()
+        {
+            
+        }
+        
+        private Boolean IsAddWorkDayCommandEnabled()
+        {
+            return this.ProjectModel.IsProjectModelActive;
         }
 
         private void OnAddEditTaskDialogOkButtonCommand()
