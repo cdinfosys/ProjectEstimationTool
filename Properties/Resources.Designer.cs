@@ -88,6 +88,15 @@ namespace ProjectEstimationTool.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select a date that is after {0}.
+        /// </summary>
+        public static string ErrorDateBeforeLastWorkDay {
+            get {
+                return ResourceManager.GetString("ErrorDateBeforeLastWorkDay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enter a value that is below {0:G2} hours.
         /// </summary>
         public static string ErrorGreaterThanMaxHours {

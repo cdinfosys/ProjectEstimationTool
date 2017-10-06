@@ -92,6 +92,22 @@
       <HintPath>packages\System.Data.SQLite.Linq.1.0.105.2\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Web.DataVisualization">
+      <HintPath>packages\Microsoft.Chart.Controls.3.5.30729\lib\net35\System.Web.DataVisualization.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.DataVisualization.Design">
+      <HintPath>packages\Microsoft.Chart.Controls.3.5.30729\lib\net35\System.Web.DataVisualization.Design.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms.DataVisualization">
+      <HintPath>packages\Microsoft.Chart.Controls.3.5.30729\lib\net35\System.Windows.Forms.DataVisualization.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms.DataVisualization.Design">
+      <HintPath>packages\Microsoft.Chart.Controls.3.5.30729\lib\net35\System.Windows.Forms.DataVisualization.Design.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Prism.Wpf.6.3.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
       <Private>True</Private>
@@ -118,8 +134,10 @@
     <Compile Include="Classes\DaysWorkedDTO.cs" />
     <Compile Include="Classes\DisableMainWindowStep.cs" />
     <Compile Include="Classes\PropertyValidationErrorsCollection.cs" />
+    <Compile Include="Events\ProjectWorkDayCreatedEvent.cs" />
     <Compile Include="Events\ShowAddItemEvent.cs" />
     <Compile Include="Events\ShowEditItemEvent.cs" />
+    <Compile Include="Events\ShowWorkDayDialogEvent.cs" />
     <Compile Include="Utilities\EmptyFieldValidationRule.cs" />
     <Compile Include="Classes\EnumerationValues.cs" />
     <Compile Include="Classes\ExitProgramStep.cs" />
@@ -145,6 +163,7 @@
     <Compile Include="Model\ProjectModel.cs" />
     <Compile Include="Model\SQLiteDataAccess.cs" />
     <Compile Include="Utilities\IntDescendingSortComparer.cs" />
+    <Compile Include="Utilities\MinimumDateValidationRule.cs" />
     <Compile Include="Utilities\ProjectDayToTextConverter.cs" />
     <Compile Include="Utilities\TimeInputValidation.cs" />
     <Compile Include="Utilities\TimeUnitsConverter.cs" />
@@ -152,6 +171,14 @@
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Page Include="Views\AddEditTaskDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BurnDownChartView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EditWorkDayDateDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -165,6 +192,12 @@
     </Compile>
     <Compile Include="Views\AddEditTaskDialog.xaml.cs">
       <DependentUpon>AddEditTaskDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BurnDownChartView.xaml.cs">
+      <DependentUpon>BurnDownChartView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EditWorkDayDateDialog.xaml.cs">
+      <DependentUpon>EditWorkDayDateDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

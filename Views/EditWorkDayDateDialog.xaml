@@ -1,0 +1,108 @@
+﻿<Window x:Class="ProjectEstimationTool.Views.EditWorkDayDateDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ProjectEstimationTool.Views"
+        xmlns:utilities="clr-namespace:ProjectEstimationTool.Utilities"
+        mc:Ignorable="d"
+        Title="Work Day" 
+        DataContext="{StaticResource MainWindowViewModel}" 
+        ResizeMode="NoResize" 
+        ScrollViewer.VerticalScrollBarVisibility="Disabled" 
+        ShowInTaskbar="False" 
+        SizeToContent="WidthAndHeight" 
+        WindowStartupLocation="CenterOwner"
+        Padding="5"
+        Width="Auto">
+    <Border
+        Padding="5">
+        <Border.Resources>
+            <Style x:Key="DateTimePickerStyle" TargetType="DatePicker">
+                <Style.Triggers>
+                    <Trigger Property="Validation.HasError" Value="true">
+                        <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Resources>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Label 
+                Grid.Row="0"
+                Grid.Column="0">
+                <AccessText Text="_Select Work Day Date:"/>
+            </Label>
+            <DatePicker 
+                x:Name="workDayDatePicker"
+                Grid.Row="0" 
+                Grid.Column="1"
+                HorizontalAlignment="Left"
+                utilities:MinimumDateValidationRule.MinimumDate="{Binding MinimumNextWorkDayDate}"
+                Style="{StaticResource DateTimePickerStyle}"
+                IsTabStop="True">
+                <DatePicker.Resources>
+                    <Style TargetType="DatePickerTextBox">
+                        <Setter Property="IsReadOnly" Value="True"/>
+                    </Style>
+                </DatePicker.Resources>
+                <DatePicker.SelectedDate>
+                    <Binding Path="EditWorkDayDate" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" ValidatesOnExceptions="True" ValidatesOnNotifyDataErrors="True">
+                        <Binding.ValidationRules>
+                            <utilities:MinimumDateValidationRule ValidatesOnTargetUpdated="True"/>
+                        </Binding.ValidationRules>
+                    </Binding>
+                </DatePicker.SelectedDate>
+            </DatePicker>
+
+            <StackPanel
+                Grid.Row="1"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                Orientation="Horizontal"
+                Margin="0,10,0,0"
+                HorizontalAlignment="Right">
+                <StackPanel.Resources>
+                    <Style TargetType="Button">
+                        <Setter Property="Width" Value="100"/>
+                        <Setter Property="Margin" Value="10, 5, 0, 5"/>
+                    </Style>
+                </StackPanel.Resources>
+                <Button
+                    IsDefault="True"
+                    TabIndex="4"
+                    Click="OnOkButtonClick"
+                    Command="{Binding EditWorkDayDateOkButtonCommand}">
+                    <AccessText Text="_OK"/>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="IsEnabled" Value="False"/>
+                            <Setter Property="Width" Value="100"/>
+                            <Setter Property="Margin" Value="10, 5, 0, 5"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding Path=(Validation.HasError), ElementName=workDayDatePicker}" Value="False"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="IsEnabled" Value="True"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button
+                    IsCancel="True"
+                    TabIndex="5">
+                    <AccessText Text="_Cancel"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

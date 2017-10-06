@@ -13,7 +13,7 @@ namespace ProjectEstimationTool.Utilities
             {
                 if (inputValue > 0)
                 {
-                    return String.Format(culture, "{0:N}", inputValue);
+                    return String.Format(culture, "{0}", inputValue);
                 }
             }
             return "---";

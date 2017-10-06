@@ -20,13 +20,16 @@ namespace ProjectEstimationTool.ViewModels
         private ProjectEstimationTool.Model.ProjectModel mProjectModel = new ProjectEstimationTool.Model.ProjectModel();
         private Boolean mCanCloseMainWindow = false;
         private PropertyValidationErrorsCollection mAddEditTaskDialogErrorsCollection;
+        private PropertyValidationErrorsCollection mEditWorkDayDateDialogErrorsCollection;
         private ICommand mAddEditTaskDialogOkButtonCommand;
         private ICommand mAddTaskCommand;
         private ICommand mEditTaskCommand;
         private ICommand mDeleteTaskCommand;
         private ICommand mAddWorkDay;
+        private ICommand mEditWorkDayDateOkButtonCommand;
         private Boolean mIsEditingExistingItem;
         private Boolean mIsMainWindowDisabled = false;
+        private DateTime mEditWorkDayDate;
 
         /// <summary>
         ///     Copy of the values of the selected item in the tree view for editing purposes.
@@ -42,9 +45,11 @@ namespace ProjectEstimationTool.ViewModels
         {
             SelectedTimeUnits = TimeMeasurementUnits.Hours;
             mAddEditTaskDialogErrorsCollection = new PropertyValidationErrorsCollection(AddEditTaskDialogErrorsCollectionChangedProc);
+            mEditWorkDayDateDialogErrorsCollection = new PropertyValidationErrorsCollection(EditWorkDayDateDialogErrorsCollectionChangedProc);
 
-            Utilities.Utility.TaskItemChanged += OnTaskItemChanged;
-            Utilities.Utility.EventAggregator.GetEvent<ProjectModelChangedEvent>().Subscribe(OnProjectModelChanged);
+            Utility.TaskItemChanged += OnTaskItemChanged;
+            Utility.EventAggregator.GetEvent<ProjectModelChangedEvent>().Subscribe(OnProjectModelChanged);
+            Utility.EventAggregator.GetEvent<ProjectWorkDayCreatedEvent>().Subscribe(OnWorkDayCreated);
         }
         #endregion Construction
 
@@ -107,7 +112,11 @@ namespace ProjectEstimationTool.ViewModels
         #region Public properties
         public PropertyValidationErrorsCollection AddEditTaskDialogErrorsCollection => this.mAddEditTaskDialogErrorsCollection;
 
+        public PropertyValidationErrorsCollection EditWorkDayDateDialogErrorsCollection => this.mEditWorkDayDateDialogErrorsCollection;
+
         public ICommand AddWorkDayCommand => this.mAddWorkDay ?? (mAddWorkDay = new DelegateCommand(OnAddWorkDayCommand, IsAddWorkDayCommandEnabled));
+
+        public ICommand EditWorkDayDateOkButtonCommand => this.mEditWorkDayDateOkButtonCommand ?? (mEditWorkDayDateOkButtonCommand = new DelegateCommand(OnEditWorkDayDateOkButtonCommand, IsEditWorkDayDateOkButtonCommandEnabled));
 
         public ICommand AddEditTaskDialogOkButtonCommand => this.mAddEditTaskDialogOkButtonCommand ?? (mAddEditTaskDialogOkButtonCommand = new DelegateCommand(OnAddEditTaskDialogOkButtonCommand, IsAddEditTaskDialogOkButtonCommandEnabled));
 
@@ -212,6 +221,26 @@ namespace ProjectEstimationTool.ViewModels
             }
         }
 
+        public DateTime EditWorkDayDate
+        {
+            get
+            {
+                return this.mEditWorkDayDate;
+            }
+            set
+            {
+                SetProperty(ref this.mEditWorkDayDate, value);
+            }
+        }
+
+        public DateTime MinimumNextWorkDayDate
+        {
+            get 
+            {
+                return (this.ProjectModel.CurrentWorkDayID < 1) ? DateTime.MinValue : this.ProjectModel.CurrentWorkDayDate; 
+            }
+        }
+
         public Boolean CanCloseMainWindow 
         {
             get
@@ -238,6 +267,8 @@ namespace ProjectEstimationTool.ViewModels
                     (AddTaskCommand as DelegateCommand).RaiseCanExecuteChanged();
                     (EditTaskCommand as DelegateCommand).RaiseCanExecuteChanged();
                     (DeleteTaskCommand as DelegateCommand).RaiseCanExecuteChanged();
+                    OnPropertyChanged(nameof(IsSelectedTaskItemEditable));
+                    OnPropertyChanged(nameof(IsTimeEstimatesEditingAvailable));
                 }
             }
         }
@@ -245,6 +276,9 @@ namespace ProjectEstimationTool.ViewModels
 
 
         #region Protected properties
+        /// <summary>
+        ///     Gets the model attached to the view model.
+        /// </summary>
         protected ProjectEstimationTool.Model.ProjectModel ProjectModel => this.mProjectModel;
         #endregion Protected properties
 
@@ -269,6 +303,16 @@ namespace ProjectEstimationTool.ViewModels
             }
 
             (this.AddWorkDayCommand as DelegateCommand).RaiseCanExecuteChanged();
+            OnPropertyChanged(nameof(IsSelectedTaskItemEditable));
+            OnPropertyChanged(nameof(IsTimeEstimatesEditingAvailable));
+            OnPropertyChanged(nameof(ProjectDay));
+        }
+
+        private void OnWorkDayCreated(Int32 workDayID)
+        {
+            OnPropertyChanged(nameof(IsSelectedTaskItemEditable));
+            OnPropertyChanged(nameof(IsTimeEstimatesEditingAvailable));
+            OnPropertyChanged(nameof(ProjectDay));
         }
 
         private void OnTaskItemChanged(Object sender, String propertyName)
@@ -322,6 +366,11 @@ namespace ProjectEstimationTool.ViewModels
         private void AddEditTaskDialogErrorsCollectionChangedProc()
         {
             (AddEditTaskDialogOkButtonCommand as DelegateCommand).RaiseCanExecuteChanged();
+        }
+
+        private void EditWorkDayDateDialogErrorsCollectionChangedProc()
+        {
+            (EditWorkDayDateOkButtonCommand as DelegateCommand).RaiseCanExecuteChanged();
         }
 
         private void OnAddTaskCommand()
@@ -414,12 +463,23 @@ namespace ProjectEstimationTool.ViewModels
 
         private void OnAddWorkDayCommand()
         {
-            
+            EditWorkDayDate = this.ProjectModel.CurrentWorkDayDate;
+            Utility.EventAggregator.GetEvent<ShowWorkDayDialogEvent>().Publish();
         }
-        
+
         private Boolean IsAddWorkDayCommandEnabled()
         {
             return this.ProjectModel.IsProjectModelActive;
+        }
+
+        private void OnEditWorkDayDateOkButtonCommand()
+        {
+            this.ProjectModel.AddWorkDay(EditWorkDayDate);
+        }
+
+        private Boolean IsEditWorkDayDateOkButtonCommandEnabled()
+        {
+            return this.EditWorkDayDateDialogErrorsCollection.HasErrors ? false : true;
         }
 
         private void OnAddEditTaskDialogOkButtonCommand()

@@ -389,7 +389,7 @@ namespace ProjectEstimationTool.Model
         /// <summary>
         ///     Date of the current work day.
         /// </summary>
-        private DateTime mCurrentWorkDayDate;
+        private DateTime mCurrentWorkDayDate = DateTime.Now.Date;
 
         /// <summary>
         ///     Start date of the project.
@@ -564,7 +564,7 @@ namespace ProjectEstimationTool.Model
                     else
                     {
                         this.mCurrentWorkDayID = 0;
-                        this.mCurrentWorkDayDate = DateTime.MinValue;
+                        this.mCurrentWorkDayDate = DateTime.Now.Date;
                     }
                 }
             }

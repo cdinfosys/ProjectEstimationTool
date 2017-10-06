@@ -9,7 +9,7 @@ namespace ProjectEstimationTool.Classes
     {
         private readonly Int32 mDaysWorkedID;
         private readonly DateTime mCalendarDate;
-        private readonly Int32 mTimeSpentMinutes;
+        private Int32 mTimeSpentMinutes;
 
         public DaysWorkedDTO
         (
@@ -25,7 +25,18 @@ namespace ProjectEstimationTool.Classes
 
         public Int32 DaysWorkedID => mDaysWorkedID;
         public DateTime CalendarDate => mCalendarDate;
-        public Int32 TimeSpentMinutes => mTimeSpentMinutes;
+
+        public Int32 TimeSpentMinutes
+        {
+            get
+            {
+                return this.mTimeSpentMinutes;
+            }
+            set 
+            {
+                this.mTimeSpentMinutes = value;
+            }
+        }
 
     } // class DaysWorkedDTO
 } // namespace ProjectEstimationTool.Classes

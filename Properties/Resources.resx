@@ -189,4 +189,7 @@
   <data name="SQLiteDataAccess_NoCurrentWorkDaySet" xml:space="preserve">
     <value>Set up a work day for logging time against</value>
   </data>
+  <data name="ErrorDateBeforeLastWorkDay" xml:space="preserve">
+    <value>Select a date that is after {0}</value>
+  </data>
 </root>

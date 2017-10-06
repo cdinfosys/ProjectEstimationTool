@@ -74,6 +74,7 @@ namespace ProjectEstimationTool.Views
             Utility.EventAggregator.GetEvent<ExitProgramEvent>().Subscribe(u => CloseMainWindow(u));
             Utility.EventAggregator.GetEvent<ShowEditItemEvent>().Subscribe(() => EditTask());
             Utility.EventAggregator.GetEvent<ShowAddItemEvent>().Subscribe(() => AddTask());
+            Utility.EventAggregator.GetEvent<ShowWorkDayDialogEvent>().Subscribe(() => ShowWorkDayDialog());
 
             (this.DataContext as MainWindowViewModel).OnNewDocument();
         }
@@ -136,6 +137,15 @@ namespace ProjectEstimationTool.Views
         private void AddTask()
         {
             AddEditTaskDialog dialog = new AddEditTaskDialog()
+            {
+                Owner = this
+            };
+            dialog.ShowDialog();
+        }
+
+        private void ShowWorkDayDialog()
+        {
+            EditWorkDayDateDialog dialog = new EditWorkDayDateDialog()
             {
                 Owner = this
             };
