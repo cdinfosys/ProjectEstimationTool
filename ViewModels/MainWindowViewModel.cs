@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using Prism.Commands;
 using ProjectEstimationTool.Classes;
 using ProjectEstimationTool.Events;
@@ -21,15 +23,25 @@ namespace ProjectEstimationTool.ViewModels
         private Boolean mCanCloseMainWindow = false;
         private PropertyValidationErrorsCollection mAddEditTaskDialogErrorsCollection;
         private PropertyValidationErrorsCollection mEditWorkDayDateDialogErrorsCollection;
-        private ICommand mAddEditTaskDialogOkButtonCommand;
+        private ICommand mSaveCommand;
+        private ICommand mCloseCommand;
+        private ICommand mNewCommand;
+        private ICommand mLoadCommand;
+        private ICommand mProjectPropertiesCommand;
         private ICommand mAddTaskCommand;
         private ICommand mEditTaskCommand;
         private ICommand mDeleteTaskCommand;
-        private ICommand mAddWorkDay;
+        private ICommand mAddWorkDayCommand;
+        private ICommand mAddEditTaskDialogOkButtonCommand;
         private ICommand mEditWorkDayDateOkButtonCommand;
+        private ICommand mEditProjectPropertiesDialogOkButtonCommand;
         private Boolean mIsEditingExistingItem;
         private Boolean mIsMainWindowDisabled = false;
         private DateTime mEditWorkDayDate;
+        private Int32 mEditingWorkTimePerDayMinutes = 450;
+        private ObservableCollection<GraphPoint> mIdealBurnDown = new ObservableCollection<GraphPoint>();
+        private ObservableCollection<GraphPoint> mActualBurnDown = new ObservableCollection<GraphPoint>();
+        private PointCollection mBurnDownChartIdealPoints = new PointCollection();
 
         /// <summary>
         ///     Copy of the values of the selected item in the tree view for editing purposes.
@@ -54,36 +66,6 @@ namespace ProjectEstimationTool.ViewModels
         #endregion Construction
 
         #region Public accessor methods
-        public void OnOpenDocument()
-        {
-            ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new CloseProjectModelStep(this.ProjectModel, new LoadProjectModelStep(this.ProjectModel)));
-            steps.Execute();
-        }
-
-        public void OnCloseDocument()
-        {
-            ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new CloseProjectModelStep(this.ProjectModel));
-            steps.Execute();
-        }
-
-        public void OnNewDocument()
-        {
-            ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new CloseProjectModelStep(this.ProjectModel, new NewProjectModelStep(this.ProjectModel)));
-            steps.Execute();
-        }
-
-        public void OnSaveDocument()
-        {
-            ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new SaveProjectModelStep(this.ProjectModel));
-            steps.Execute();
-        }
-
-        public void OnSaveDocumentAs()
-        {
-            ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new SaveProjectModelAsStep(this.ProjectModel));
-            steps.Execute();
-        }
-
         public void OnCloseMainWindow()
         {
             ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new CloseProjectModelStep(this.ProjectModel, new ExitProgramStep(this)));
@@ -114,11 +96,21 @@ namespace ProjectEstimationTool.ViewModels
 
         public PropertyValidationErrorsCollection EditWorkDayDateDialogErrorsCollection => this.mEditWorkDayDateDialogErrorsCollection;
 
-        public ICommand AddWorkDayCommand => this.mAddWorkDay ?? (mAddWorkDay = new DelegateCommand(OnAddWorkDayCommand, IsAddWorkDayCommandEnabled));
+        public ICommand AddWorkDayCommand => this.mAddWorkDayCommand ?? (mAddWorkDayCommand = new DelegateCommand(OnAddWorkDayCommand, IsAddWorkDayCommandEnabled));
 
         public ICommand EditWorkDayDateOkButtonCommand => this.mEditWorkDayDateOkButtonCommand ?? (mEditWorkDayDateOkButtonCommand = new DelegateCommand(OnEditWorkDayDateOkButtonCommand, IsEditWorkDayDateOkButtonCommandEnabled));
 
         public ICommand AddEditTaskDialogOkButtonCommand => this.mAddEditTaskDialogOkButtonCommand ?? (mAddEditTaskDialogOkButtonCommand = new DelegateCommand(OnAddEditTaskDialogOkButtonCommand, IsAddEditTaskDialogOkButtonCommandEnabled));
+
+        public ICommand SaveCommand => this.mSaveCommand ?? (mSaveCommand = new DelegateCommand(OnSaveCommand, IsSaveCommandEnabled));
+
+        public ICommand CloseCommand => this.mCloseCommand ?? (mCloseCommand = new DelegateCommand(OnCloseCommand, IsCloseCommandEnabled));
+
+        public ICommand NewCommand => this.mNewCommand ?? (mNewCommand = new DelegateCommand(OnNewCommand));
+
+        public ICommand LoadCommand => this.mLoadCommand ?? (mLoadCommand = new DelegateCommand(OnLoadCommand));
+
+        public ICommand ProjectPropertiesCommand => this.mProjectPropertiesCommand ?? (this.mProjectPropertiesCommand = new DelegateCommand(OnProjectPropertiesCommand, IsProjectPropertiesCommandEnabled));
 
         public ICommand AddTaskCommand => this.mAddTaskCommand ?? (mAddTaskCommand = new DelegateCommand(OnAddTaskCommand, IsAddTaskCommandEnabled));
 
@@ -126,7 +118,25 @@ namespace ProjectEstimationTool.ViewModels
 
         public ICommand DeleteTaskCommand => this.mDeleteTaskCommand ?? (mDeleteTaskCommand = new DelegateCommand(OnDeleteTaskCommand, IsDeleteTaskCommandEnabled));
 
+        public ICommand EditProjectPropertiesDialogOkButtonCommand => this.mEditProjectPropertiesDialogOkButtonCommand ?? (mEditProjectPropertiesDialogOkButtonCommand = new DelegateCommand(OnEditProjectPropertiesDialogOkButtonCommand));
+
         public Int32 ProjectDay => (this.ProjectModel != null) ? this.ProjectModel.CurrentWorkDayID : 0;
+
+        public void OnNewDocument()
+        {
+            ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new CloseProjectModelStep(this.ProjectModel, new NewProjectModelStep(this.ProjectModel)));
+            steps.Execute();
+        }
+
+        /// <summary>
+        ///     Gets the graph points for the ideal burn down 
+        /// </summary>
+        public ObservableCollection<GraphPoint> IdealBurnDown => this.mIdealBurnDown;
+
+        /// <summary>
+        ///     Gets the graph points for the actual burn down 
+        /// </summary>
+        public ObservableCollection<GraphPoint> ActualBurnDown => this.mActualBurnDown;
 
         public ObservableCollection<ProjectTreeItemBase> ProjectItemsTreeData
         {
@@ -263,7 +273,6 @@ namespace ProjectEstimationTool.ViewModels
             {
                 if (SetProperty<ProjectTreeItemBase>(ref this.mSelectedTaskItem, value as ProjectTreeItemBase))
                 {
-                    EditBoxSelectedTaskItem = value as ProjectTreeBranchItem;
                     (AddTaskCommand as DelegateCommand).RaiseCanExecuteChanged();
                     (EditTaskCommand as DelegateCommand).RaiseCanExecuteChanged();
                     (DeleteTaskCommand as DelegateCommand).RaiseCanExecuteChanged();
@@ -272,6 +281,32 @@ namespace ProjectEstimationTool.ViewModels
                 }
             }
         }
+
+        /// <summary>
+        ///     Copy of the number of minutes per working day for editing.
+        /// </summary>
+        public Int32 EditingWorkTimePerDayMinutes
+        {
+            get { return this.mEditingWorkTimePerDayMinutes; }
+            set 
+            {
+                if (SetProperty(ref this.mEditingWorkTimePerDayMinutes, value))
+                {
+                    // TODO: Update burn down chart calculations
+                }
+            }
+        }
+
+        public PointCollection BurnDownChartIdealPoints
+        {
+            get { return this.mBurnDownChartIdealPoints; }
+            private set
+            {
+                this.mBurnDownChartIdealPoints = value;
+                OnPropertyChanged();
+            }
+        }
+
         #endregion Public properties
 
 
@@ -286,26 +321,41 @@ namespace ProjectEstimationTool.ViewModels
         /// <summary>
         ///     Event handler for the <see cref="ProjectModelChangedEvent"/> event.
         /// </summary>
-        private void OnProjectModelChanged()
+        private void OnProjectModelChanged(ProjectModelState projectState)
         {
             SelectedTaskItem = null;
-            ProjectModelTreeBranchItem projectRoot = this.mProjectModel.ProjectTaskItemsRoot;
-            if (projectRoot != null)
-            {
-                ObservableCollection<ProjectTreeItemBase> replacementList = new ObservableCollection<ProjectTreeItemBase>();
-                ProjectTreeBranchItem rootItem = projectRoot.Clone() as ProjectTreeBranchItem;
-                replacementList.Add(rootItem);
-                this.ProjectItemsTreeData = replacementList;
-            }
-            else
+
+            if (projectState == ProjectModelState.NoProject)
             {
                 this.ProjectItemsTreeData.Clear();
+                this.ActualBurnDown.Clear();
+                this.IdealBurnDown.Clear();
+            }
+            else if (projectState == ProjectModelState.Open)
+            {
+                ProjectModelTreeBranchItem projectRoot = this.mProjectModel.ProjectTaskItemsRoot;
+                if (projectRoot != null)
+                {
+                    ObservableCollection<ProjectTreeItemBase> replacementList = new ObservableCollection<ProjectTreeItemBase>();
+                    ProjectTreeBranchItem rootItem = projectRoot.Clone() as ProjectTreeBranchItem;
+                    replacementList.Add(rootItem);
+                    this.ProjectItemsTreeData = replacementList;
+                }
+                else
+                {
+                    this.ProjectItemsTreeData.Clear();
+                }
+
+                RecalculateProjectDuration();
             }
 
             (this.AddWorkDayCommand as DelegateCommand).RaiseCanExecuteChanged();
             OnPropertyChanged(nameof(IsSelectedTaskItemEditable));
             OnPropertyChanged(nameof(IsTimeEstimatesEditingAvailable));
             OnPropertyChanged(nameof(ProjectDay));
+
+            (this.SaveCommand as DelegateCommand).RaiseCanExecuteChanged();
+            (this.CloseCommand as DelegateCommand).RaiseCanExecuteChanged();
         }
 
         private void OnWorkDayCreated(Int32 workDayID)
@@ -319,6 +369,10 @@ namespace ProjectEstimationTool.ViewModels
         {
             this.ProjectModel.TaskItemChanged(sender as ProjectTreeItemBase);
             UpdateParentsOfTask(sender as ProjectTreeItemBase, propertyName);
+            if (String.Compare(propertyName, nameof(ProjectTreeItemBase.EstimatedTimeMinutes), StringComparison.Ordinal) == 0)
+            {
+                RecalculateProjectDuration();
+            }
         }
 
         private void UpdateParentsOfTask(ProjectTreeItemBase changedTask, String propertyName)
@@ -373,6 +427,52 @@ namespace ProjectEstimationTool.ViewModels
             (EditWorkDayDateOkButtonCommand as DelegateCommand).RaiseCanExecuteChanged();
         }
 
+        private void OnLoadCommand()
+        {
+            this.OnOpenDocument();
+        }
+
+        private void OnNewCommand()
+        {
+            this.OnNewDocument();
+        }
+
+        private void OnSaveCommand()
+        {
+            this.OnSaveDocument();
+        }
+        
+        private Boolean IsSaveCommandEnabled()
+        {
+            return (this.ProjectModel.ModelChanged == true);
+        }
+
+        private void OnCloseCommand()
+        {
+            this.OnCloseDocument();
+        }
+        
+        private Boolean IsCloseCommandEnabled()
+        {
+            return (this.ProjectModel.IsProjectModelActive == true);
+        }
+
+        private void OnProjectPropertiesCommand()
+        {
+            this.SetProjectProperties();
+        }
+
+        private Boolean IsProjectPropertiesCommandEnabled()
+        {
+            return (this.ProjectModel.IsProjectModelActive == true);
+        }
+
+        private void OnEditProjectPropertiesDialogOkButtonCommand()
+        {
+            ProjectModel.WorkDayLengthMinutes = EditingWorkTimePerDayMinutes;
+            RecalculateProjectDuration();
+        }
+
         private void OnAddTaskCommand()
         {
             mIsEditingExistingItem = false;
@@ -394,6 +494,15 @@ namespace ProjectEstimationTool.ViewModels
         private void OnEditTaskCommand()
         {
             mIsEditingExistingItem = true;
+            ProjectTreeBranchItem src = SelectedTaskItem as ProjectTreeBranchItem;
+            EditBoxSelectedTaskItem.ProjectItemID = src.ProjectItemID;
+            EditBoxSelectedTaskItem.ParentProjectItemID = src.ParentProjectItemID;
+            EditBoxSelectedTaskItem.ItemDescription = src.ItemDescription;
+            EditBoxSelectedTaskItem.MaximumTimeMinutes = src.MaximumTimeMinutes;
+            EditBoxSelectedTaskItem.MinimumTimeMinutes = src.MinimumTimeMinutes;
+            EditBoxSelectedTaskItem.EstimatedTimeMinutes = src.EstimatedTimeMinutes;
+            EditBoxSelectedTaskItem.TimeSpentMinutes = src.TimeSpentMinutes;
+            EditBoxSelectedTaskItem.PercentageComplete = src.PercentageComplete;
             Utility.EventAggregator.GetEvent<ShowEditItemEvent>().Publish();
         }
         
@@ -472,6 +581,9 @@ namespace ProjectEstimationTool.ViewModels
             return this.ProjectModel.IsProjectModelActive;
         }
 
+        /// <summary>
+        ///     Called when the user clicks the OK button on the dialog box where a work day is added.
+        /// </summary>
         private void OnEditWorkDayDateOkButtonCommand()
         {
             this.ProjectModel.AddWorkDay(EditWorkDayDate);
@@ -482,10 +594,13 @@ namespace ProjectEstimationTool.ViewModels
             return this.EditWorkDayDateDialogErrorsCollection.HasErrors ? false : true;
         }
 
+        /// <summary>
+        ///     Called when the user clicks the OK button on the Add/Edit task dialog box.
+        /// </summary>
         private void OnAddEditTaskDialogOkButtonCommand()
         {
             // The ProjectItemID for new items being added is set to -1
-            if (EditBoxSelectedTaskItem.ProjectItemID >= 0) // Editing an item
+            if (mIsEditingExistingItem) // Editing an item
             {
                 ProjectTreeItemBase selectedItem = SelectedTaskItem as ProjectTreeItemBase;
                 if (selectedItem != null)
@@ -495,14 +610,17 @@ namespace ProjectEstimationTool.ViewModels
                     selectedItem.MaximumTimeMinutes = EditBoxSelectedTaskItem.MaximumTimeMinutes;
                     selectedItem.EstimatedTimeMinutes = EditBoxSelectedTaskItem.EstimatedTimeMinutes;
 
+                    UpdateParentsOfTask(selectedItem, nameof(selectedItem.MinimumTimeMinutes));
+                    UpdateParentsOfTask(selectedItem, nameof(selectedItem.MaximumTimeMinutes));
+                    UpdateParentsOfTask(selectedItem, nameof(selectedItem.EstimatedTimeMinutes));
+
                     this.ProjectModel.TaskItemChanged(selectedItem);
                 }
             }
-            else
+            else // Adding an item
             {
                 ProjectTreeItemBase selectedItem = SelectedTaskItem as ProjectTreeItemBase;
 
-                // Adding an item
                 ProjectTreeBranchItem newChild = new ProjectTreeBranchItem()
                 {
                     ProjectItemID = ProjectTreeBranchItem.GetNextProjectItemID(),
@@ -514,6 +632,8 @@ namespace ProjectEstimationTool.ViewModels
                     PercentageComplete = 0,
                     TreeLevel = selectedItem.TreeLevel + 1,
                     ParentProjectItemID = selectedItem.ProjectItemID
+
+
                 };
                 this.mProjectModel.AddTaskItem(selectedItem.ProjectItemID, newChild);
 
@@ -522,8 +642,73 @@ namespace ProjectEstimationTool.ViewModels
                     selectedItem.Children = new ObservableCollection<ProjectTreeItemBase>();
                 }
                 selectedItem.Children.Add(newChild);
-                SelectedTaskItem = newChild;
+
+                UpdateParentsOfTask(newChild, nameof(newChild.MinimumTimeMinutes));
+                UpdateParentsOfTask(newChild, nameof(newChild.MaximumTimeMinutes));
+                UpdateParentsOfTask(newChild, nameof(newChild.EstimatedTimeMinutes));
+                UpdateParentsOfTask(newChild, nameof(newChild.TimeSpentMinutes));
+                UpdateParentsOfTask(newChild, nameof(newChild.PercentageComplete));
             }
+        }
+
+        private void OnOpenDocument()
+        {
+            ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new CloseProjectModelStep(this.ProjectModel, new LoadProjectModelStep(this.ProjectModel)));
+            steps.Execute();
+        }
+
+
+        private void OnCloseDocument()
+        {
+            ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new CloseProjectModelStep(this.ProjectModel));
+            steps.Execute();
+        }
+
+        private void OnSaveDocument()
+        {
+            ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new SaveProjectModelStep(this.ProjectModel));
+            steps.Execute();
+        }
+
+        private void SetProjectProperties()
+        {
+            
+            Utility.EventAggregator.GetEvent<ShowEditProjectPropertiesEvent>().Publish();
+        }
+
+        /// <summary>
+        /// Calculates the project duration based on the number of hours per work day and the estimated task duration of each item.
+        /// </summary>
+        private void RecalculateProjectDuration()
+        {
+            this.ActualBurnDown.Clear();
+            this.IdealBurnDown.Clear();
+            this.BurnDownChartIdealPoints = new PointCollection();
+
+            if (this.ProjectItemsTreeData.Count < 1) 
+            {
+                return;
+            }
+
+            List<GraphPoint> idealBurnDownPoints = new List<GraphPoint>();
+            Int32 estimatedWorkDays = (Convert.ToInt32(this.ProjectItemsTreeData[0].EstimatedTimeMinutes) + (this.ProjectModel.WorkDayLengthMinutes - 1)) / this.ProjectModel.WorkDayLengthMinutes;
+            Double idealEffortLeft = 0.0;
+            Double idealDailyEffort = 100.0 / (Convert.ToDouble(estimatedWorkDays));
+            for (Int32 dayNumber = 0; dayNumber < estimatedWorkDays; ++dayNumber)
+            {
+                idealBurnDownPoints.Add(new GraphPoint(dayNumber, Convert.ToInt32(idealEffortLeft)));
+                idealEffortLeft += idealDailyEffort;
+            }
+            //idealBurnDownPoints.Add(new GraphPoint(estimatedWorkDays, 0));
+            IdealBurnDown.Clear();
+            IdealBurnDown.AddRange(idealBurnDownPoints);
+
+            PointCollection graphPoints = new PointCollection(estimatedWorkDays);
+            foreach (GraphPoint graphPoint in IdealBurnDown)
+            {
+                graphPoints.Add(new Point(graphPoint.X, graphPoint.Y));
+            }
+            BurnDownChartIdealPoints = graphPoints;
         }
         #endregion Private helper methods
     } // class MainWindowViewModel

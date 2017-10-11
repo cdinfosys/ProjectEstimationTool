@@ -3,9 +3,19 @@
 namespace ProjectEstimationTool.Events
 {
     /// <summary>
+    ///     Enumeration that identifies the state of the project model.
+    /// </summary>
+    public enum ProjectModelState
+    {
+        NoProject,
+        Open,
+        Modified
+    }
+
+    /// <summary>
     ///     Event fired by the model to let the viewmodel know that the model has been closed or loaded.
     /// </summary>
-    public class ProjectModelChangedEvent : PubSubEvent
+    public class ProjectModelChangedEvent : PubSubEvent<ProjectModelState>
     {
     }
 } // namespace ProjectEstimationTool.Events

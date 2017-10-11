@@ -91,12 +91,12 @@ namespace ProjectEstimationTool.Interfaces
         void LogWorkDay(DateTime workDayDate);
 
         /// <summary>
-        ///     Update the time spent on a project by a specified work day.
+        ///     Update the percentage of the project that is complete on a specific work day.
         /// </summary>
-        /// <timeSpentMinutes>
-        ///     Time spent on the project when the work day is logged.
-        /// </timeSpentMinutes>
-        void SetWorkDayTimeSpent(Int32 timeSpentMinutes);
+        /// <projectPercentageComplete>
+        ///     Percentage of the project that is complete.
+        /// </projectPercentageComplete>
+        void SetWorkDayCompletionPercentage(Int32 projectPercentageComplete);
 
         /// <summary>
         ///     Gets a list of the days on which work was logged.
@@ -120,6 +120,14 @@ namespace ProjectEstimationTool.Interfaces
         IEnumerable<ProjectVersionDTO> GetProjectVersions();
 
         /// <summary>
+        /// Sets the number of minutes per work day.
+        /// </summary>
+        /// <param name="workDayLengthMinutes">
+        /// New value for the number of minutes per work day.
+        /// </param>
+        void SetMinutesPerWorkDay(Int32 workDayLengthMinutes);
+
+        /// <summary>
         /// Returns the schema version of the data store.
         /// </summary>
         Int32 SchemaVersion { get; }
@@ -140,12 +148,17 @@ namespace ProjectEstimationTool.Interfaces
         DateTime ProjectStartDate { get; }
 
         /// <summary>
-        ///     Gets the date of the current work day.
+        /// Gets the date of the current work day.
         /// </summary>
         DateTime WorkDayDate { get; }
 
         /// <summary>
-        ///     Get the ID of the current work day.
+        /// Gets the number of minutes per work day.
+        /// </summary>
+        Int32 MinutesPerWorkDay { get; }
+
+        /// <summary>
+        /// Get the ID of the current work day.
         /// </summary>
         Int32 WorkDayID { get; }
     } // interface IDataAccess

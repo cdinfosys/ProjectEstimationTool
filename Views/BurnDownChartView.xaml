@@ -4,8 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ProjectEstimationTool.Views"
-             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             mc:Ignorable="d"
+             x:Name="uc"
+             d:DesignHeight="300" 
+             d:DesignWidth="300">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -23,19 +25,41 @@
             Grid.Column="0"
             Grid.Row="0"
             Grid.RowSpan="3"
-            VerticalAlignment="Center">
+            VerticalAlignment="Center"
+            Text="Remaining Effort (%)">
             <TextBlock.LayoutTransform>
                 <RotateTransform Angle="270"/>
             </TextBlock.LayoutTransform>
-                Remaining Effort
         </TextBlock>
 
         <TextBlock
             Grid.Column="2"
             Grid.Row="3"
             Grid.ColumnSpan="3"
-            HorizontalAlignment="Center">
-                Day
-        </TextBlock>
+            HorizontalAlignment="Center"
+            Text="Day"/>
+
+        <Border
+            Grid.Column="3"
+            Grid.Row="0"
+            BorderBrush="Black"
+            BorderThickness="2"
+            SizeChanged="Border_SizeChanged">
+            <Grid
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+                <Path
+                    x:Name="verticalAxis"
+                    Stroke="Black"
+                    StrokeThickness="1"/>
+
+                <Polyline 
+                    Stroke="DarkGreen"
+                    StrokeThickness="2"
+                    x:Name="idealBurnDown"
+                    Points="{Binding BurnDownChartIdealPoints}"/>
+            </Grid>
+        </Border>
+
     </Grid>
 </UserControl>

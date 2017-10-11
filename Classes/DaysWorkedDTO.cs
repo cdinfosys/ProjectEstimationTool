@@ -9,32 +9,32 @@ namespace ProjectEstimationTool.Classes
     {
         private readonly Int32 mDaysWorkedID;
         private readonly DateTime mCalendarDate;
-        private Int32 mTimeSpentMinutes;
+        private Int32 mProjectPercentageComplete;
 
         public DaysWorkedDTO
         (
             Int32 daysWorkedID,
             DateTime calendarDate,
-            Int32 timeSpentMinutes
+            Int32 projectPercentageComplete
         )
         {
             this.mDaysWorkedID = daysWorkedID;
             this.mCalendarDate = calendarDate.Date;
-            this.mTimeSpentMinutes = timeSpentMinutes;
+            this.mProjectPercentageComplete = projectPercentageComplete;
         }
 
         public Int32 DaysWorkedID => mDaysWorkedID;
         public DateTime CalendarDate => mCalendarDate;
 
-        public Int32 TimeSpentMinutes
+        public Int32 ProjectPercentageComplete
         {
             get
             {
-                return this.mTimeSpentMinutes;
+                return this.mProjectPercentageComplete;
             }
             set 
             {
-                this.mTimeSpentMinutes = value;
+                this.mProjectPercentageComplete = value;
             }
         }
 

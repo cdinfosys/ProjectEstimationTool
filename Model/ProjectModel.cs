@@ -48,6 +48,11 @@ namespace ProjectEstimationTool.Model
         /// </summary>
         private Int32 mCurrentWorkDayID = -1;
 
+        /// <summary>
+        ///     Number of minutes in a work day.
+        /// </summary>
+        private Int32 mWorkDayLengthMinutes;
+
         #endregion // Private data members
 
         /// <summary>
@@ -131,7 +136,11 @@ namespace ProjectEstimationTool.Model
             }
             set
             {
-                this.mModelChanged = value;
+                if (this.mModelChanged != value)
+                {
+                    this.mModelChanged = value;
+                    Utility.EventAggregator.GetEvent<ProjectModelChangedEvent>().Publish(ProjectModelState.Modified);
+                }
             }
         }
 
@@ -171,14 +180,31 @@ namespace ProjectEstimationTool.Model
         /// <summary>
         ///     Gets the date of the current work day
         /// </summary>
-        public DateTime CurrentWorkDayDate => this.mDataAccess?.WorkDayDate ?? DateTime.Now.Date;
+        public DateTime CurrentWorkDayDate => this.DataAccessObject?.WorkDayDate ?? DateTime.Now.Date;
+
+        /// <summary>
+        ///     Number of minutes in a work day.
+        /// </summary>
+        public Int32 WorkDayLengthMinutes
+        {
+            get { return this.mWorkDayLengthMinutes; }
+            set
+            {
+                Int32 newVal = Math.Max(30, Math.Min(1440, value));
+                if (this.mWorkDayLengthMinutes != newVal)
+                {
+                    this.mWorkDayLengthMinutes = newVal;
+                    ModelChanged = true;
+                }
+            }
+        }
 
         /// <summary>
         ///     Adds a new work day to the project.
         /// </summary>
         public void AddWorkDay(DateTime workDayDate)
         {
-            DaysWorkedDTO workDayRec = new DaysWorkedDTO(++this.mCurrentWorkDayID, workDayDate, Convert.ToInt32(ProjectTaskItemsRoot.TimeSpentMinutes));
+            DaysWorkedDTO workDayRec = new DaysWorkedDTO(++this.mCurrentWorkDayID, workDayDate, Convert.ToInt32(ProjectTaskItemsRoot.PercentageComplete));
             this.DaysWorked.Add(workDayRec);
             this.NewWorkDays.Add(workDayRec);
             this.ModelChanged = true;
@@ -188,12 +214,12 @@ namespace ProjectEstimationTool.Model
         /// <summary>
         ///     Gets a flag 
         /// </summary>
-        public Boolean ProjectPathSet => (this.mDataAccess != null);
+        public Boolean ProjectPathSet => (!String.IsNullOrWhiteSpace(this.PathToModelFile));
 
         /// <summary>
         ///     Gets a flag that indicates of the project model is active. The model is only active if it is linked to a data access object.
         /// </summary>
-        public Boolean IsProjectModelActive => (this.mDataAccess != null);
+        public Boolean IsProjectModelActive => (this.DataAccessObject != null);
         #endregion Public properties
 
         #region Public accessor methods
@@ -212,12 +238,13 @@ namespace ProjectEstimationTool.Model
             mDaysWorked.Clear();
             mNewWorkDays.Clear();
             mCurrentWorkDayID = -1;
+            PathToModelFile = String.Empty;
         }
 
         public void CloseModel()
         {
             DiscardModel();
-            Utility.EventAggregator.GetEvent<ProjectModelChangedEvent>().Publish();
+            Utility.EventAggregator.GetEvent<ProjectModelChangedEvent>().Publish(ProjectModelState.NoProject);
         }
 
         public void ForAllTreeItems(Action<ProjectTreeItemBase> action) => ForAllTreeItems(this.mProjectItemsRoot, action);
@@ -246,44 +273,48 @@ namespace ProjectEstimationTool.Model
                 ItemDescription = Resources.DefaultRootTaksDescription
             };
             ProjectTreeItemBase.SetHighestProjectItemID(1);
-            this.mDataAccess = DataAccessObject;
+            this.mDataAccess = new SQLiteDataAccess();
             this.mDaysWorked = new List<DaysWorkedDTO>();
             this.mNewWorkDays = new List<DaysWorkedDTO>();
             this.mCurrentWorkDayID = 0;
+            this.mWorkDayLengthMinutes = mDataAccess.MinutesPerWorkDay;
 
             ForAllTreeItems(u => (u as ProjectModelTreeBranchItem).TrackingFlags = ProjectModelTreeBranchItem.ChangeTrackingFlags.Added);
 
             ModelChanged = false;
-            Utility.EventAggregator.GetEvent<ProjectModelChangedEvent>().Publish();
+            Utility.EventAggregator.GetEvent<ProjectModelChangedEvent>().Publish(ProjectModelState.Open);
         }
 
         public void LoadData(String filePath)
         {
             this.PathToModelFile = filePath;
 
+            this.mDataAccess = new SQLiteDataAccess() { DatabaseFilePath = filePath };
             IDataAccess dataAccess = this.DataAccessObject;
             PathToModelFile = filePath;
-            if (dataAccess is SQLiteDataAccess)
-            {
-                (dataAccess as SQLiteDataAccess).DatabaseFilePath = filePath;
-            }
             dataAccess.Open();
             ProjectTreeItemBase.SetHighestProjectItemID(dataAccess.GetHighestTaskItemID());
             ExpandIntoTree(dataAccess.GetTaskItems(true));
             ForAllTreeItems(u => (u as ProjectModelTreeBranchItem).TrackingFlags = ProjectModelTreeBranchItem.ChangeTrackingFlags.Unchanged);
             DaysWorked.AddRange(dataAccess.GetWorkDays());
             this.mCurrentWorkDayID = dataAccess.WorkDayID;
+            this.mWorkDayLengthMinutes = dataAccess.MinutesPerWorkDay;
             this.ModelChanged = false;
 
-            Utility.EventAggregator.GetEvent<ProjectModelChangedEvent>().Publish();
+            Utility.EventAggregator.GetEvent<ProjectModelChangedEvent>().Publish(ProjectModelState.Open);
         }
 
         public void SaveData()
         {
+            IDataAccess dataAccess = this.DataAccessObject;
+            if (dataAccess == null)
+            {
+                return;
+            }
+
             List<ProjectModelTreeBranchItem> updateList = OrganiseTaskItemsForStoring();
             if (updateList.Count > 0)
             {
-                IDataAccess dataAccess = this.DataAccessObject;
                 dataAccess.CreateProjectVersion();
 
                 foreach (ProjectModelTreeBranchItem taskItem in updateList)
@@ -294,6 +325,7 @@ namespace ProjectEstimationTool.Model
                 dataAccess.SetLastUpdateTime();
             }
 
+            dataAccess.SetMinutesPerWorkDay(this.WorkDayLengthMinutes);
             UpdateCurrentWorkDayValues();
             StoreNewWorkDays();
 
@@ -303,6 +335,11 @@ namespace ProjectEstimationTool.Model
         public void SaveDataAs(String pathToOutputFile)
         {
             IDataAccess dataAccess = this.DataAccessObject;
+            if (dataAccess == null)
+            {
+                return;
+            }
+
             PathToModelFile = pathToOutputFile;
             if (dataAccess is SQLiteDataAccess)
             {
@@ -337,7 +374,7 @@ namespace ProjectEstimationTool.Model
 
                 if (this.DaysWorked?.Count > 0)
                 {
-                    this.DaysWorked[this.DaysWorked.Count - 1].TimeSpentMinutes = Convert.ToInt32(this.ProjectTaskItemsRoot.TimeSpentMinutes);
+                    this.DaysWorked[this.DaysWorked.Count - 1].ProjectPercentageComplete = Convert.ToInt32(this.ProjectTaskItemsRoot.PercentageComplete);
                 }
             }
         }
@@ -398,7 +435,7 @@ namespace ProjectEstimationTool.Model
         #endregion // Public accessor methods
 
         #region Protected properties
-        protected IDataAccess DataAccessObject => this.mDataAccess ?? (mDataAccess = new SQLiteDataAccess());
+        protected IDataAccess DataAccessObject => this.mDataAccess;
         #endregion Protected properties
 
         #region Private helper methods
@@ -456,7 +493,7 @@ namespace ProjectEstimationTool.Model
                 // Only update if the new record was not added after the last save
                 if (!this.NewWorkDays.Contains(workDay))
                 {
-                    DataAccessObject.SetWorkDayTimeSpent(workDay.TimeSpentMinutes);
+                    DataAccessObject.SetWorkDayCompletionPercentage(workDay.ProjectPercentageComplete);
                 }
             }
         }
@@ -467,7 +504,7 @@ namespace ProjectEstimationTool.Model
             foreach (DaysWorkedDTO workDay in NewWorkDays)
             {
                 dataAccess.LogWorkDay(workDay.CalendarDate);
-                dataAccess.SetWorkDayTimeSpent(workDay.TimeSpentMinutes);
+                dataAccess.SetWorkDayCompletionPercentage(workDay.ProjectPercentageComplete);
             }
 
             NewWorkDays.Clear();

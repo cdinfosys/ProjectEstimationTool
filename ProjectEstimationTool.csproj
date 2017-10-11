@@ -133,10 +133,12 @@
     <Compile Include="Classes\CloseProjectModelStep.cs" />
     <Compile Include="Classes\DaysWorkedDTO.cs" />
     <Compile Include="Classes\DisableMainWindowStep.cs" />
+    <Compile Include="Classes\GraphPoint.cs" />
     <Compile Include="Classes\PropertyValidationErrorsCollection.cs" />
     <Compile Include="Events\ProjectWorkDayCreatedEvent.cs" />
     <Compile Include="Events\ShowAddItemEvent.cs" />
     <Compile Include="Events\ShowEditItemEvent.cs" />
+    <Compile Include="Events\ShowEditProjectPropertiesEvent.cs" />
     <Compile Include="Events\ShowWorkDayDialogEvent.cs" />
     <Compile Include="Utilities\EmptyFieldValidationRule.cs" />
     <Compile Include="Classes\EnumerationValues.cs" />
@@ -178,6 +180,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\EditProjectPropertiesDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\EditWorkDayDateDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -195,6 +201,9 @@
     </Compile>
     <Compile Include="Views\BurnDownChartView.xaml.cs">
       <DependentUpon>BurnDownChartView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EditProjectPropertiesDialog.xaml.cs">
+      <DependentUpon>EditProjectPropertiesDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\EditWorkDayDateDialog.xaml.cs">
       <DependentUpon>EditWorkDayDateDialog.xaml</DependentUpon>

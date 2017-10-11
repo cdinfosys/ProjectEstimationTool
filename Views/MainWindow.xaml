@@ -54,10 +54,6 @@
         <utilities:ProjectDayToTextConverter x:Key="ProjectDayToTextConverter"/>
     </Window.Resources>
     <Window.CommandBindings>
-        <CommandBinding Command="ApplicationCommands.New" Executed="NewCommandHandler"/>
-        <CommandBinding Command="ApplicationCommands.Open" Executed="OpenCommandHandler"/>
-        <CommandBinding Command="ApplicationCommands.Save" Executed="SaveCommandHandler"/>
-        <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCommandHandler"/>
         <CommandBinding Command="local:UserInterfaceCommands.Exit" Executed="ExitCommandHandler"/>
         <CommandBinding Command="local:UserInterfaceCommands.About" Executed="AboutCommandHandler"/>
     </Window.CommandBindings>
@@ -96,10 +92,14 @@
                     Band="0">
                     <Menu>
                         <MenuItem Header="_File">
-                            <MenuItem Header="_New" Command="ApplicationCommands.New" InputGestureText="Ctrl+N" />
-                            <MenuItem Header="_Open..." Command="ApplicationCommands.Open" InputGestureText="Ctrl+O"/>
-                            <MenuItem Header="_Save" Command="ApplicationCommands.Save" InputGestureText="Ctrl+S"/>
-                            <MenuItem Header="_Close" Command="ApplicationCommands.Close" InputGestureText="Ctrl+W"/>
+                            <MenuItem Header="_New" Command="{Binding NewCommand}" InputGestureText="Ctrl+N" />
+                            <MenuItem Header="_Open..." Command="{Binding LoadCommand}" InputGestureText="Ctrl+O"/>
+                            <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S"/>
+                            <MenuItem Header="_Close" Command="{Binding CloseCommand}" InputGestureText="Ctrl+W"/>
+                            <Separator/>
+                            <MenuItem Header="_Project">
+                                <MenuItem Header="_Project Properties..." Command="{Binding ProjectPropertiesCommand}"/>
+                            </MenuItem>
                             <Separator/>
                             <MenuItem Header="E_xit" Command="local:UserInterfaceCommands.Exit" InputGestureText="Alt+F4"/>
                         </MenuItem>
@@ -111,7 +111,7 @@
                 <ToolBar Band="1">
                     <ToolBarPanel Orientation="Horizontal">
                         <Button 
-                            Command="ApplicationCommands.Open" 
+                            Command="{Binding LoadCommand}" 
                             ToolTip="Load project">
                             <Image 
                                 Style="{StaticResource ToolbarButtonImage}"
@@ -121,7 +121,7 @@
                                 Source="/ProjectEstimationTool;component/Resources/OpenFileIcon1.png"/>
                         </Button>
                         <Button 
-                            Command="ApplicationCommands.Save" 
+                            Command="{Binding SaveCommand}" 
                             ToolTip="Save project">
                             <Image 
                                 Style="{StaticResource ToolbarButtonImage}"
@@ -245,6 +245,7 @@
                                 Grid.Row="1"
                                 ItemsSource="{Binding ProjectItemsTreeData}" 
                                 SelectedItemChanged="TreeView_SelectedItemChanged"
+                                MouseDoubleClick="OnTreeViewMouseDoubleClick"
                                 BorderBrush="Gray" 
                                 BorderThickness="0 1 0 0">
                                 <TreeView.ItemContainerStyle>
@@ -580,7 +581,8 @@
                 <TabItem 
                     Header="Burn Down Chart"
                     Width="150">
-                    <local:BurnDownChartView 
+                    <local:BurnDownChartView
+                        Series1Points="{Binding IdealBurnDown}"
                         DataContext="{Binding}"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"/>

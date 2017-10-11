@@ -107,10 +107,14 @@ namespace ProjectEstimationTool.Model
         private const Int32 PROJECT_METADATA_ID_START_DATE = 3;
 
         /// <summary>
+        ///     Number of minutes per work day.
+        /// </summary>
+        private const Int32 PROJECT_METADATA_ID_MINUTES_PER_WORK_DAY = 4;
+
+        /// <summary>
         ///     ID of the current project database schema version
         /// </summary>
         private const Int32 CURRENT_DATABASE_SCHEMA_VERSION_ID = 1;
-
 
         private const String SQL_CREATE_PROJECT_METADATA_TABLE = 
         @"
@@ -130,7 +134,7 @@ namespace ProjectEstimationTool.Model
             (
                 DaysWorkedID INTEGER NOT NULL PRIMARY KEY,
                 CalendarDate DATETIME NOT NULL,
-                TimeSpentMinutes INTEGER NOT NULL
+                ProjectPercentageComplete INTEGER NOT NULL
             )
         ";
 
@@ -195,6 +199,20 @@ namespace ProjectEstimationTool.Model
         ";
 
         private const String SQL_STORE_DATABASE_SCHEMA_VERSION_ID = 
+        @"
+            INSERT INTO ProjectMetaData
+            (
+                ProjectMetaDataID,
+                IntegralValue
+            )
+            VALUES
+            (
+                @projectMetaDataID,
+                @integralValue
+            )
+        ";
+
+        private const String SQL_STORE_MINUTES_PER_WORK_DAY = 
         @"
             INSERT INTO ProjectMetaData
             (
@@ -329,21 +347,23 @@ namespace ProjectEstimationTool.Model
             LIMIT 1
         ";
 
-        private const String SQL_LOG_WORK_DAY = @"INSERT INTO DaysWorked(CalendarDate, TimeSpentMinutes) VALUES (@calendarDate, -1)";
+        private const String SQL_LOG_WORK_DAY = @"INSERT INTO DaysWorked(CalendarDate, ProjectPercentageComplete) VALUES (@calendarDate, -1)";
 
-        private const String SQL_UPDATE_WORK_DAY_TIME_SPENT = @"UPDATE DaysWorked SET TimeSpentMinutes = @timeSpentMinutes WHERE DaysWorkedID=@daysWorkedID";
+        private const String SQL_UPDATE_WORK_DAY_TIME_SPENT = @"UPDATE DaysWorked SET ProjectPercentageComplete = @projectPercentageComplete WHERE DaysWorkedID=@daysWorkedID";
 
         private const String SQL_GET_WORK_DAYS =
         @"
             SELECT
                 DaysWorkedID,
                 CalendarDate,
-                TimeSpentMinutes
+                ProjectPercentageComplete
             FROM
                 DaysWorked
         ";
 
         private const String SQL_READ_DATABASE_SCHEMA_VERSION_ID = @"SELECT IntegralValue FROM ProjectMetaData WHERE ProjectMetaDataID=@projectMetaDataID";
+
+        private const String SQL_READ_WORK_DAY_LENGTH = @"SELECT IntegralValue FROM ProjectMetaData WHERE ProjectMetaDataID=@projectMetaDataID";
 
         private const String SQL_UPDATE_LAST_UPDATE_TIME = @"INSERT OR REPLACE INTO ProjectMetaData(ProjectMetaDataID, DateTimeValue) VALUES (@projectMetaDataID, DATETIME('now'))";
 
@@ -385,6 +405,11 @@ namespace ProjectEstimationTool.Model
         ///     ID of the last record in the DaysWorked table.
         /// </summary>
         private Int32 mCurrentWorkDayID = 0;
+
+        /// <summary>
+        ///     Number of minutes per work day.
+        /// </summary>
+        private Int32 mWorkDayLengthMinutes = 450;
 
         /// <summary>
         ///     Date of the current work day.
@@ -471,6 +496,16 @@ namespace ProjectEstimationTool.Model
                 dbCommand.ExecuteNonQuery();
             }
 
+            // Store the number of minutes in a work day
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_STORE_DATABASE_SCHEMA_VERSION_ID;
+                dbCommand.Parameters.Add(new SQLiteParameter("@projectMetaDataID", PROJECT_METADATA_ID_MINUTES_PER_WORK_DAY));
+                dbCommand.Parameters.Add(new SQLiteParameter("@integralValue", 450));
+                dbCommand.ExecuteNonQuery();
+            }
+
             // Store the value that identifies the date when the project was last updated.
             using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
             {
@@ -529,6 +564,9 @@ namespace ProjectEstimationTool.Model
             // Get the version number of the database
             FetchCurrentProjectVersion();
 
+            // Get the number of minutes per working day
+            FetchWorkingDayLengthMinutes();
+
             // Get the record ID of the current work day.
             GetCurrentWorkDay();
         }
@@ -565,6 +603,29 @@ namespace ProjectEstimationTool.Model
                     {
                         this.mCurrentWorkDayID = 0;
                         this.mCurrentWorkDayDate = DateTime.Now.Date;
+                    }
+                }
+            }
+        }
+
+        private void FetchWorkingDayLengthMinutes()
+        {
+            SQLiteConnection dbConnection = GetConnection();
+
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_READ_WORK_DAY_LENGTH;
+                dbCommand.Parameters.Add(new SQLiteParameter("@projectMetaDataID", PROJECT_METADATA_ID_MINUTES_PER_WORK_DAY));
+                using (SQLiteDataReader reader = dbCommand.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
+                {
+                    if (reader.Read())
+                    {
+                        this.mWorkDayLengthMinutes = reader.GetInt32(reader.GetOrdinal("IntegralValue"));
+                    }
+                    else
+                    {
+                        this.mWorkDayLengthMinutes = 450;
                     }
                 }
             }
@@ -670,6 +731,20 @@ namespace ProjectEstimationTool.Model
                     this.mDatabaseLastUpdatedDate = reader.GetDateTime(reader.GetOrdinal("DateTimeValue"));
                 }
             }
+        }
+
+        public void SetMinutesPerWorkDay(Int32 workDayLengthMinutes)
+        {
+            SQLiteConnection dbConnection = GetConnection();
+            using (SQLiteCommand dbCommand = dbConnection.CreateCommand())
+            {
+                dbCommand.CommandType = CommandType.Text;
+                dbCommand.CommandText = SQL_STORE_MINUTES_PER_WORK_DAY;
+                dbCommand.Parameters.Add(new SQLiteParameter("@projectMetaDataID", PROJECT_METADATA_ID_MINUTES_PER_WORK_DAY));
+                dbCommand.Parameters.Add(new SQLiteParameter("@integralValue", workDayLengthMinutes));
+                dbCommand.ExecuteNonQuery();
+            }
+            this.mWorkDayLengthMinutes = workDayLengthMinutes;
         }
 
         /// <summary>
@@ -830,7 +905,7 @@ namespace ProjectEstimationTool.Model
                 {
                     Int32 colIndexDaysWorkedID = reader.GetOrdinal("DaysWorkedID");
                     Int32 colIndexCalendarDate = reader.GetOrdinal("CalendarDate");
-                    Int32 colIndexTimeSpentMinutes = reader.GetOrdinal("TimeSpentMinutes");
+                    Int32 colIndexProjectPercentageComplete = reader.GetOrdinal("ProjectPercentageComplete");
 
                     Dictionary<Int32, DaysWorkedDTO> dates = new Dictionary<Int32, DaysWorkedDTO>();
 
@@ -843,7 +918,7 @@ namespace ProjectEstimationTool.Model
                             (
                                 reader.GetInt32(colIndexDaysWorkedID), 
                                 reader.GetDateTime(colIndexCalendarDate),
-                                reader.GetInt32(colIndexTimeSpentMinutes)
+                                reader.GetInt32(colIndexProjectPercentageComplete)
                             )
                         );
                     }
@@ -861,12 +936,12 @@ namespace ProjectEstimationTool.Model
         }
 
         /// <summary>
-        ///     Update the time spent on a project by a specified work day.
+        ///     Update the percentage of the project that is complete on a specific work day.
         /// </summary>
-        /// <timeSpentMinutes>
-        ///     Time spent on the project when the work day is logged.
-        /// </timeSpentMinutes>
-        public void SetWorkDayTimeSpent(Int32 timeSpentMinutes)
+        /// <projectPercentageComplete>
+        ///     Percentage of the project that is complete.
+        /// </projectPercentageComplete>
+        public void SetWorkDayCompletionPercentage(Int32 projectPercentageComplete)
         {
             if (this.mCurrentWorkDayID < 1)
             {
@@ -879,7 +954,7 @@ namespace ProjectEstimationTool.Model
                 dbCommand.CommandType = CommandType.Text;
                 dbCommand.CommandText = SQL_UPDATE_WORK_DAY_TIME_SPENT;
                 dbCommand.Parameters.Add(new SQLiteParameter("@daysWorkedID", this.mCurrentWorkDayID));
-                dbCommand.Parameters.Add(new SQLiteParameter("@timeSpentMinutes", Math.Max(0, timeSpentMinutes)));
+                dbCommand.Parameters.Add(new SQLiteParameter("@projectPercentageComplete", Math.Max(0, projectPercentageComplete)));
                 dbCommand.ExecuteNonQuery();
             }
             
@@ -946,6 +1021,11 @@ namespace ProjectEstimationTool.Model
         /// Gets the start date of the project.
         /// </summary>
         public DateTime ProjectStartDate => this.mProjectStartDate;
+
+        /// <summary>
+        /// Gets the number of minutes per work day.
+        /// </summary>
+        public Int32 MinutesPerWorkDay => this.mWorkDayLengthMinutes;
         #endregion Public properties
 
         #region Private helper methods

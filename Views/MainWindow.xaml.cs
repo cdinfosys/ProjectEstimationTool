@@ -75,43 +75,13 @@ namespace ProjectEstimationTool.Views
             Utility.EventAggregator.GetEvent<ShowEditItemEvent>().Subscribe(() => EditTask());
             Utility.EventAggregator.GetEvent<ShowAddItemEvent>().Subscribe(() => AddTask());
             Utility.EventAggregator.GetEvent<ShowWorkDayDialogEvent>().Subscribe(() => ShowWorkDayDialog());
-
+            Utility.EventAggregator.GetEvent<ShowEditProjectPropertiesEvent>().Subscribe(() => ShowProjectPropertiesDialog());
             (this.DataContext as MainWindowViewModel).OnNewDocument();
         }
 
         private void CloseMainWindow(Int32 programExitCode)
         {
             this.Close();
-        }
-
-        private void NewCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
-        {
-            (this.DataContext as MainWindowViewModel).OnNewDocument();
-            eventArgs.Handled = true;
-        }
-
-        private void OpenCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
-        {
-            (this.DataContext as MainWindowViewModel).OnOpenDocument();
-            eventArgs.Handled = true;
-        }
-
-        private void SaveCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
-        {
-            (this.DataContext as MainWindowViewModel).OnSaveDocument();
-            eventArgs.Handled = true;
-        }
-
-        private void SaveAsCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
-        {
-            (this.DataContext as MainWindowViewModel).OnSaveDocumentAs();
-            eventArgs.Handled = true;
-        }
-
-        private void CloseCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
-        {
-            (this.DataContext as MainWindowViewModel).OnCloseDocument();
-            eventArgs.Handled = true;
         }
 
         private void ExitCommandHandler(Object sender, ExecutedRoutedEventArgs eventArgs)
@@ -148,6 +118,16 @@ namespace ProjectEstimationTool.Views
             EditWorkDayDateDialog dialog = new EditWorkDayDateDialog()
             {
                 Owner = this
+            };
+            dialog.ShowDialog();
+        }
+
+        private void ShowProjectPropertiesDialog()
+        {
+            EditProjectPropertiesDialog dialog = new EditProjectPropertiesDialog()
+            {
+                Owner = this,
+                DataContext = this.DataContext
             };
             dialog.ShowDialog();
         }
@@ -195,6 +175,11 @@ namespace ProjectEstimationTool.Views
         {
             (this.DataContext as MainWindowViewModel).OnCloseMainWindow();
             eventArgs.Cancel = (this.DataContext as MainWindowViewModel).CanCloseMainWindow ? false : true;
+        }
+
+        private void OnTreeViewMouseDoubleClick(Object sender, MouseButtonEventArgs eventArgs)
+        {
+            (DataContext as MainWindowViewModel).EditTaskCommand.Execute(null);
         }
     } // class MainWindow 
 } // namespace ProjectEstimationTool.Views
