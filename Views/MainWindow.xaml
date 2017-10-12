@@ -582,7 +582,8 @@
                     Header="Burn Down Chart"
                     Width="150">
                     <local:BurnDownChartView
-                        Series1Points="{Binding IdealBurnDown}"
+                        Series1Points="{Binding IdealBurnDown, Mode=OneWay, NotifyOnSourceUpdated=True}"
+                        Series2Points="{Binding ActualBurnDown, Mode=OneWay, NotifyOnSourceUpdated=True}"
                         DataContext="{Binding}"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"/>

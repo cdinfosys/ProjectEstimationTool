@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ProjectEstimationTool.Classes;
 using NLog;
+using System.Threading;
 
 namespace ProjectEstimationTool.Utilities
 {
@@ -16,6 +17,7 @@ namespace ProjectEstimationTool.Utilities
         #region Private class members
         private static readonly Prism.Events.IEventAggregator mEventAggregator = new Prism.Events.EventAggregator();
         private static Logger mLoggerInstance = LogManager.GetCurrentClassLogger();
+        private static SynchronizationContext sUISynchronizationContext;
         #endregion Private class members
 
         #region Public properties
@@ -26,6 +28,8 @@ namespace ProjectEstimationTool.Utilities
                 return mEventAggregator;
             }
         }
+
+        public static SynchronizationContext UISynchronizationContext => sUISynchronizationContext;
         #endregion Public properties
 
         public static void NotifyTaskItemChanged
@@ -43,6 +47,11 @@ namespace ProjectEstimationTool.Utilities
             {
                 return mLoggerInstance;
             }
+        }
+
+        public static void CaptureMainWindowSynchronizationContext()
+        {
+            sUISynchronizationContext = SynchronizationContext.Current;
         }
     } // class Utility
 } // namespace ProjectEstimationTool.Utilities

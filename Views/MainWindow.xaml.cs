@@ -1,4 +1,5 @@
-﻿    using System;
+﻿using System;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
@@ -42,6 +43,8 @@ namespace ProjectEstimationTool.Views
         /// </summary>
         public MainWindow()
         {
+            Utility.CaptureMainWindowSynchronizationContext();
+
             InitializeComponent();
             mSaveFileDialog = new SaveFileDialog()
             {

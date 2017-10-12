@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -15,6 +17,8 @@ namespace ProjectEstimationTool.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase, IMainWindowViewModel
     {
+        private static Object sLockRecalculateProjectDurationCancellationToken = new Object();
+
         #region Fields
         private ObservableCollection<ProjectTreeItemBase> mProjectItemsTreeData = new ObservableCollection<ProjectTreeItemBase>();
         private ProjectTreeItemBase mSelectedTaskItem = null;
@@ -42,6 +46,7 @@ namespace ProjectEstimationTool.ViewModels
         private ObservableCollection<GraphPoint> mIdealBurnDown = new ObservableCollection<GraphPoint>();
         private ObservableCollection<GraphPoint> mActualBurnDown = new ObservableCollection<GraphPoint>();
         private PointCollection mBurnDownChartIdealPoints = new PointCollection();
+        private CancellationTokenSource mRecalculateProjectDurationCancellationToken;
 
         /// <summary>
         ///     Copy of the values of the selected item in the tree view for editing purposes.
@@ -131,12 +136,34 @@ namespace ProjectEstimationTool.ViewModels
         /// <summary>
         ///     Gets the graph points for the ideal burn down 
         /// </summary>
-        public ObservableCollection<GraphPoint> IdealBurnDown => this.mIdealBurnDown;
+        public ObservableCollection<GraphPoint> IdealBurnDown
+        {
+            get 
+            {
+                return this.mIdealBurnDown; 
+            }
+            set
+            {
+                this.mIdealBurnDown = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         ///     Gets the graph points for the actual burn down 
         /// </summary>
-        public ObservableCollection<GraphPoint> ActualBurnDown => this.mActualBurnDown;
+        public ObservableCollection<GraphPoint> ActualBurnDown
+        {
+            get
+            {
+                return this.mActualBurnDown;
+            }
+            set
+            {
+                this.mActualBurnDown = value;
+                OnPropertyChanged();
+            }
+        }
 
         public ObservableCollection<ProjectTreeItemBase> ProjectItemsTreeData
         {
@@ -297,16 +324,6 @@ namespace ProjectEstimationTool.ViewModels
             }
         }
 
-        public PointCollection BurnDownChartIdealPoints
-        {
-            get { return this.mBurnDownChartIdealPoints; }
-            private set
-            {
-                this.mBurnDownChartIdealPoints = value;
-                OnPropertyChanged();
-            }
-        }
-
         #endregion Public properties
 
 
@@ -317,11 +334,28 @@ namespace ProjectEstimationTool.ViewModels
         protected ProjectEstimationTool.Model.ProjectModel ProjectModel => this.mProjectModel;
         #endregion Protected properties
 
+        #region Private properties
+        private CancellationTokenSource RecalculateProjectDurationCancellationToken
+        {
+            get
+            {
+                lock (sLockRecalculateProjectDurationCancellationToken)
+                {
+                    if (this.mRecalculateProjectDurationCancellationToken != null)
+                    {
+                        mRecalculateProjectDurationCancellationToken.Cancel();
+                    }
+                    return (this.mRecalculateProjectDurationCancellationToken = new CancellationTokenSource());
+                }
+            }
+        }
+        #endregion Private properties
+
         #region Private helper methods
         /// <summary>
         ///     Event handler for the <see cref="ProjectModelChangedEvent"/> event.
         /// </summary>
-        private void OnProjectModelChanged(ProjectModelState projectState)
+        private async void OnProjectModelChanged(ProjectModelState projectState)
         {
             SelectedTaskItem = null;
 
@@ -345,8 +379,14 @@ namespace ProjectEstimationTool.ViewModels
                 {
                     this.ProjectItemsTreeData.Clear();
                 }
-
-                RecalculateProjectDuration();
+                try
+                {
+                    await RecalculateProjectDurationAsync(RecalculateProjectDurationCancellationToken.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ignore exception
+                }
             }
 
             (this.AddWorkDayCommand as DelegateCommand).RaiseCanExecuteChanged();
@@ -358,20 +398,36 @@ namespace ProjectEstimationTool.ViewModels
             (this.CloseCommand as DelegateCommand).RaiseCanExecuteChanged();
         }
 
-        private void OnWorkDayCreated(Int32 workDayID)
+        private async void OnWorkDayCreated(Int32 workDayID)
         {
             OnPropertyChanged(nameof(IsSelectedTaskItemEditable));
             OnPropertyChanged(nameof(IsTimeEstimatesEditingAvailable));
             OnPropertyChanged(nameof(ProjectDay));
+
+            try
+            {
+                await RecalculateProjectDurationAsync(RecalculateProjectDurationCancellationToken.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore exception
+            }
         }
 
-        private void OnTaskItemChanged(Object sender, String propertyName)
+        private async void OnTaskItemChanged(Object sender, String propertyName)
         {
             this.ProjectModel.TaskItemChanged(sender as ProjectTreeItemBase);
             UpdateParentsOfTask(sender as ProjectTreeItemBase, propertyName);
             if (String.Compare(propertyName, nameof(ProjectTreeItemBase.EstimatedTimeMinutes), StringComparison.Ordinal) == 0)
             {
-                RecalculateProjectDuration();
+                try
+                {
+                    await RecalculateProjectDurationAsync(RecalculateProjectDurationCancellationToken.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ignore exception
+                }
             }
         }
 
@@ -467,10 +523,17 @@ namespace ProjectEstimationTool.ViewModels
             return (this.ProjectModel.IsProjectModelActive == true);
         }
 
-        private void OnEditProjectPropertiesDialogOkButtonCommand()
+        private async void OnEditProjectPropertiesDialogOkButtonCommand()
         {
             ProjectModel.WorkDayLengthMinutes = EditingWorkTimePerDayMinutes;
-            RecalculateProjectDuration();
+            try
+            {
+                await RecalculateProjectDurationAsync(RecalculateProjectDurationCancellationToken.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore exception
+            }
         }
 
         private void OnAddTaskCommand()
@@ -676,40 +739,98 @@ namespace ProjectEstimationTool.ViewModels
             Utility.EventAggregator.GetEvent<ShowEditProjectPropertiesEvent>().Publish();
         }
 
+        private async Task RecalculateProjectDurationAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await RecalculateProjectDuration(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore exception
+            }
+        }
+
         /// <summary>
         /// Calculates the project duration based on the number of hours per work day and the estimated task duration of each item.
         /// </summary>
-        private void RecalculateProjectDuration()
+        private Task RecalculateProjectDuration(CancellationToken cancellationToken)
         {
-            this.ActualBurnDown.Clear();
-            this.IdealBurnDown.Clear();
-            this.BurnDownChartIdealPoints = new PointCollection();
+            return Task.Run
+            ( ()=> 
+                {
+                    // Return immediately if cancellation has already been requested
+                    cancellationToken.ThrowIfCancellationRequested();
+                    Boolean checkForCancellation = cancellationToken.CanBeCanceled;
 
-            if (this.ProjectItemsTreeData.Count < 1) 
-            {
-                return;
-            }
+                    if (this.ProjectItemsTreeData.Count < 1) 
+                    {
+                        Utility.UISynchronizationContext.Post(new SendOrPostCallback( (o) => 
+                        {
+                            this.ActualBurnDown.Clear();
+                            this.IdealBurnDown.Clear();
+                        }), null);
+                        return;
+                    }
 
-            List<GraphPoint> idealBurnDownPoints = new List<GraphPoint>();
-            Int32 estimatedWorkDays = (Convert.ToInt32(this.ProjectItemsTreeData[0].EstimatedTimeMinutes) + (this.ProjectModel.WorkDayLengthMinutes - 1)) / this.ProjectModel.WorkDayLengthMinutes;
-            Double idealEffortLeft = 0.0;
-            Double idealDailyEffort = 100.0 / (Convert.ToDouble(estimatedWorkDays));
-            for (Int32 dayNumber = 0; dayNumber < estimatedWorkDays; ++dayNumber)
-            {
-                idealBurnDownPoints.Add(new GraphPoint(dayNumber, Convert.ToInt32(idealEffortLeft)));
-                idealEffortLeft += idealDailyEffort;
-            }
-            //idealBurnDownPoints.Add(new GraphPoint(estimatedWorkDays, 0));
-            IdealBurnDown.Clear();
-            IdealBurnDown.AddRange(idealBurnDownPoints);
+                    List<GraphPoint> idealBurnDownPoints = new List<GraphPoint>();
+                    Int32 estimatedWorkDays = (Convert.ToInt32(this.ProjectItemsTreeData[0].EstimatedTimeMinutes) + (this.ProjectModel.WorkDayLengthMinutes - 1)) / this.ProjectModel.WorkDayLengthMinutes;
+                    Double idealEffortLeft = 0.0;
+                    Double idealDailyEffort = 100.0 / (Convert.ToDouble(estimatedWorkDays));
+                    for (Int32 dayNumber = 0; dayNumber < estimatedWorkDays; ++dayNumber)
+                    {
+                        idealBurnDownPoints.Add(new GraphPoint(dayNumber, Convert.ToInt32(idealEffortLeft)));
+                        idealEffortLeft += idealDailyEffort;
+                    }
 
-            PointCollection graphPoints = new PointCollection(estimatedWorkDays);
-            foreach (GraphPoint graphPoint in IdealBurnDown)
-            {
-                graphPoints.Add(new Point(graphPoint.X, graphPoint.Y));
-            }
-            BurnDownChartIdealPoints = graphPoints;
+                    if (checkForCancellation)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    if (checkForCancellation)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    Utility.UISynchronizationContext.Post
+                    (
+                        new SendOrPostCallback
+                        (
+                            (o) => 
+                            {
+                                List<GraphPoint> burnDownPoints = o as List<GraphPoint>;
+                                IdealBurnDown = new ObservableCollection<GraphPoint>(burnDownPoints);
+                            }
+                        ), 
+                        idealBurnDownPoints
+                    );
+
+                    List<GraphPoint> actualBurnDownPoints = new List<GraphPoint>() { new GraphPoint(0, 0) };
+                    if (ProjectModel?.DaysWorked != null)
+                    {
+                        Int32 workDayNumber = 0;
+                        foreach (DaysWorkedDTO workDay in ProjectModel.DaysWorked)
+                        {
+                            actualBurnDownPoints.Add(new GraphPoint(++workDayNumber, workDay.ProjectPercentageComplete));
+                        }
+                    }
+                    Utility.UISynchronizationContext.Post
+                    (
+                        new SendOrPostCallback
+                        (
+                            (o) =>
+                            {
+                                List<GraphPoint> burnDownPoints = o as List<GraphPoint>;
+                                ActualBurnDown = new ObservableCollection<GraphPoint>(burnDownPoints) ;
+                            }
+                        ),
+                        actualBurnDownPoints
+                    );
+                }
+            );
         }
         #endregion Private helper methods
+
     } // class MainWindowViewModel
 } // namespace ProjectEstimationTool.ViewModels
