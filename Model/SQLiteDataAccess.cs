@@ -214,7 +214,7 @@ namespace ProjectEstimationTool.Model
 
         private const String SQL_STORE_MINUTES_PER_WORK_DAY = 
         @"
-            INSERT INTO ProjectMetaData
+            INSERT OR REPLACE INTO ProjectMetaData
             (
                 ProjectMetaDataID,
                 IntegralValue

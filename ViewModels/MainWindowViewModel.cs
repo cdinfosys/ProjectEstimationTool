@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -31,6 +32,7 @@ namespace ProjectEstimationTool.ViewModels
         private ICommand mCloseCommand;
         private ICommand mNewCommand;
         private ICommand mLoadCommand;
+        private ICommand mExportCommand;
         private ICommand mProjectPropertiesCommand;
         private ICommand mAddTaskCommand;
         private ICommand mEditTaskCommand;
@@ -114,6 +116,8 @@ namespace ProjectEstimationTool.ViewModels
         public ICommand NewCommand => this.mNewCommand ?? (mNewCommand = new DelegateCommand(OnNewCommand));
 
         public ICommand LoadCommand => this.mLoadCommand ?? (mLoadCommand = new DelegateCommand(OnLoadCommand));
+
+        public ICommand ExportCommand => this.mExportCommand ?? (mExportCommand = new DelegateCommand(OnExportCommand, IsExportCommandEnabled));
 
         public ICommand ProjectPropertiesCommand => this.mProjectPropertiesCommand ?? (this.mProjectPropertiesCommand = new DelegateCommand(OnProjectPropertiesCommand, IsProjectPropertiesCommandEnabled));
 
@@ -357,7 +361,7 @@ namespace ProjectEstimationTool.ViewModels
         /// </summary>
         private async void OnProjectModelChanged(ProjectModelState projectState)
         {
-            SelectedTaskItem = null;
+            //SelectedTaskItem = null;
 
             if (projectState == ProjectModelState.NoProject)
             {
@@ -396,6 +400,7 @@ namespace ProjectEstimationTool.ViewModels
 
             (this.SaveCommand as DelegateCommand).RaiseCanExecuteChanged();
             (this.CloseCommand as DelegateCommand).RaiseCanExecuteChanged();
+            (this.ExportCommand as DelegateCommand).RaiseCanExecuteChanged();
         }
 
         private async void OnWorkDayCreated(Int32 workDayID)
@@ -512,6 +517,17 @@ namespace ProjectEstimationTool.ViewModels
         {
             return (this.ProjectModel.IsProjectModelActive == true);
         }
+
+        private void OnExportCommand()
+        {
+            this.OnExportDocument();
+        }
+        
+        private Boolean IsExportCommandEnabled()
+        {
+            return (this.ProjectModel.IsProjectModelActive == true);
+        }
+
 
         private void OnProjectPropertiesCommand()
         {
@@ -731,6 +747,18 @@ namespace ProjectEstimationTool.ViewModels
         {
             ProjectModelProcessingStepBase steps = new DisableMainWindowStep(this, new SaveProjectModelStep(this.ProjectModel));
             steps.Execute();
+        }
+
+        private void OnExportDocument()
+        {
+            if (File.Exists("D:\\1\\huh.xlsx"))
+            {
+                File.Delete("D:\\1\\huh.xlsx");
+            }
+
+            using (var exporter = new ExcelExport.ExcelExporter("D:\\1\\huh.xlsx"))
+            {
+            }
         }
 
         private void SetProjectProperties()

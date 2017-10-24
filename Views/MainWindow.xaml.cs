@@ -184,5 +184,13 @@ namespace ProjectEstimationTool.Views
         {
             (DataContext as MainWindowViewModel).EditTaskCommand.Execute(null);
         }
+
+        private void OnTabItemGotFocus(Object sender, RoutedEventArgs e)
+        {
+            if (Object.ReferenceEquals(sender, burnDownChartTab))
+            {
+                burnDownChartView.RecalculateScale();
+            }
+        }
     } // class MainWindow 
 } // namespace ProjectEstimationTool.Views

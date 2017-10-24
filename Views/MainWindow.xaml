@@ -97,6 +97,8 @@
                             <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S"/>
                             <MenuItem Header="_Close" Command="{Binding CloseCommand}" InputGestureText="Ctrl+W"/>
                             <Separator/>
+                            <MenuItem Header="Expor_t..." Command="{Binding ExportCommand}"/>
+                            <Separator/>
                             <MenuItem Header="_Project">
                                 <MenuItem Header="_Project Properties..." Command="{Binding ProjectPropertiesCommand}"/>
                             </MenuItem>
@@ -578,10 +580,13 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem 
+                <TabItem
+                    x:Name="burnDownChartTab"
                     Header="Burn Down Chart"
-                    Width="150">
+                    Width="150"
+                    GotFocus="OnTabItemGotFocus">
                     <local:BurnDownChartView
+                        x:Name="burnDownChartView"
                         Series1Points="{Binding IdealBurnDown, Mode=OneWay, NotifyOnSourceUpdated=True}"
                         Series2Points="{Binding ActualBurnDown, Mode=OneWay, NotifyOnSourceUpdated=True}"
                         DataContext="{Binding}"
