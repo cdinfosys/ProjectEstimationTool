@@ -6,7 +6,7 @@ using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.Classes
 {
-    public class SaveProjectModelAsStep : ProjectModelProcessingStepBase
+    class SaveProjectModelAsStep : ProjectModelProcessingStepBase
     {
         private ProjectModel mProjectModel;
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ProjectEstimationTool.Interfaces
 {
-    public interface IMainWindowViewModel
+    interface IMainWindowViewModel
     {
     }
 }

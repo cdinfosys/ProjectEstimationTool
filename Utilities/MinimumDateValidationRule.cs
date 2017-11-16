@@ -7,7 +7,7 @@ using ProjectEstimationTool.Properties;
 
 namespace ProjectEstimationTool.Utilities
 {
-    public class MinimumDateValidationRule : ValidationRule
+    class MinimumDateValidationRule : ValidationRule
     {
         private DateTime mMinimumDate = DateTime.MinValue;
 

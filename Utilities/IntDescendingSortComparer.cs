@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProjectEstimationTool.Utilities
 {
-    public class IntDescendingSortComparer : IComparer<Int32>
+    public struct IntDescendingSortComparer : IComparer<Int32>
     {
         public Int32 Compare(Int32 x, Int32 y)
         {

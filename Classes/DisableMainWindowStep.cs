@@ -7,7 +7,7 @@ using ProjectEstimationTool.ViewModels;
 
 namespace ProjectEstimationTool.Classes
 {
-    public class DisableMainWindowStep : ProjectModelProcessingStepBase
+    class DisableMainWindowStep : ProjectModelProcessingStepBase
     {
         private MainWindowViewModel mMainWindowViewModel;
         private Boolean mMainWindowDisabled;

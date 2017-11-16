@@ -7,7 +7,7 @@ using ProjectEstimationTool.Classes;
 
 namespace ProjectEstimationTool.Interfaces
 {
-    public interface IDataAccess : IDisposable
+    interface IDataAccess : IDisposable
     {
         /// <summary>
         /// Create a new data store.

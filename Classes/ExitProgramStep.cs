@@ -6,7 +6,7 @@ using ProjectEstimationTool.ViewModels;
 
 namespace ProjectEstimationTool.Classes
 {
-    public class ExitProgramStep : ProjectModelProcessingStepBase
+    class ExitProgramStep : ProjectModelProcessingStepBase
     {
         private MainWindowViewModel mMainViewModel;
 

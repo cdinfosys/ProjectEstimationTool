@@ -192,4 +192,16 @@
   <data name="ErrorDateBeforeLastWorkDay" xml:space="preserve">
     <value>Select a date that is after {0}</value>
   </data>
+  <data name="ProjectExportDefaultExtension" xml:space="preserve">
+    <value>.xlsx</value>
+  </data>
+  <data name="ProjectExportFileNameFilter" xml:space="preserve">
+    <value>Excel Spreadsheets|*.xlsx|All Files|*.*</value>
+  </data>
+  <data name="ProjectFileDefaultExtension" xml:space="preserve">
+    <value>.petproj</value>
+  </data>
+  <data name="ProjectFileOpenSaveFilter" xml:space="preserve">
+    <value>Estimation Tool Projects|*.petproj|All Files|*.*</value>
+  </data>
 </root>

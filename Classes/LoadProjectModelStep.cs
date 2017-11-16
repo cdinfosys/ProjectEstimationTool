@@ -11,7 +11,7 @@ using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.Classes
 {
-    public class LoadProjectModelStep : ProjectModelProcessingStepBase
+    class LoadProjectModelStep : ProjectModelProcessingStepBase
     {
         private ProjectModel mProjectModel;
 

@@ -7,10 +7,13 @@ using System.Threading.Tasks;
 using ProjectEstimationTool.Classes;
 using NLog;
 using System.Threading;
+using System.Configuration;
+using System.Windows;
 
 namespace ProjectEstimationTool.Utilities
 {
-    public static class Utility
+    [Serializable]
+    static class Utility
     {
         public static event EventHandler<String> TaskItemChanged;
 
@@ -18,6 +21,7 @@ namespace ProjectEstimationTool.Utilities
         private static readonly Prism.Events.IEventAggregator mEventAggregator = new Prism.Events.EventAggregator();
         private static Logger mLoggerInstance = LogManager.GetCurrentClassLogger();
         private static SynchronizationContext sUISynchronizationContext;
+        private static CancellationTokenSource sSaveSettingsCancellationTokenSource;
         #endregion Private class members
 
         #region Public properties
@@ -49,9 +53,44 @@ namespace ProjectEstimationTool.Utilities
             }
         }
 
+        /// <summary>
+        /// Stores a reference to the UI SynchronizationContext object.
+        /// </summary>
         public static void CaptureMainWindowSynchronizationContext()
         {
             sUISynchronizationContext = SynchronizationContext.Current;
+        }
+
+        /// <summary>
+        /// Save program settings
+        /// </summary>
+        /// <param name="settings">
+        /// Reference to an object that contains program settings.
+        /// </param>
+        public async static void SaveSettingsAsync(SettingsBase settings)
+        {
+            // Cancel a pending save operation
+            if (sSaveSettingsCancellationTokenSource != null)
+            {
+                sSaveSettingsCancellationTokenSource.Cancel();
+                sSaveSettingsCancellationTokenSource.Dispose();
+            }
+            sSaveSettingsCancellationTokenSource = new CancellationTokenSource();
+
+            await Task.Run
+            (() =>
+                {
+                    try
+                    {
+                        settings.Save();
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Ignore cancellation exceptions
+                    }
+                },
+                sSaveSettingsCancellationTokenSource.Token
+            );
         }
     } // class Utility
 } // namespace ProjectEstimationTool.Utilities

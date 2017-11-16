@@ -32,5 +32,29 @@ namespace ProjectEstimationTool.Properties {
                 return ((string)(this["SQLiteConnectionStringTemplate"]));
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PreviousExcelExportFolderPath {
+            get {
+                return ((string)(this["PreviousExcelExportFolderPath"]));
+            }
+            set {
+                this["PreviousExcelExportFolderPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PreviousProjectFolderPath {
+            get {
+                return ((string)(this["PreviousProjectFolderPath"]));
+            }
+            set {
+                this["PreviousProjectFolderPath"] = value;
+            }
+        }
     }
 }

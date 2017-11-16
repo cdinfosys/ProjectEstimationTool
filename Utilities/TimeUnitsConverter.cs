@@ -10,7 +10,7 @@ using ProjectEstimationTool.Classes;
 
 namespace ProjectEstimationTool.Utilities
 {
-    public class TimeUnitsConverter : Freezable, IValueConverter
+    class TimeUnitsConverter : Freezable, IValueConverter
     {
         public static readonly DependencyProperty MeasurementTypeProperty = DependencyProperty.Register
         (

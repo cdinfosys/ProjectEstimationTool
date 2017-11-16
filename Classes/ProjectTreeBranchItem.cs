@@ -5,7 +5,7 @@ using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.Classes
 {
-    public class ProjectTreeBranchItem : ProjectTreeItemBase//, IDataErrorInfo
+    class ProjectTreeBranchItem : ProjectTreeItemBase//, IDataErrorInfo
     {
         private Int32 mProjectItemID;
         private Double mMinimumTimeMinutes;

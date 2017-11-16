@@ -11,7 +11,7 @@ namespace ProjectEstimationTool.ViewModels
     /// <summary>
     ///     Base class for view models.
     /// </summary>
-    public abstract class ViewModelBase : INotifyPropertyChanged
+    abstract class ViewModelBase : INotifyPropertyChanged
     {
         #region Events
         /// <summary>

@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace ProjectEstimationTool.Utilities
 {
-    public class ProjectDayToTextConverter : IValueConverter
+    class ProjectDayToTextConverter : IValueConverter
     {
         public Object Convert(Object value, Type targetType, Object parameter, CultureInfo culture)
         {

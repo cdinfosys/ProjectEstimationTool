@@ -10,7 +10,7 @@ using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.Model
 {
-    public class ProjectModel
+    class ProjectModel
     {
         #region Private data members
         /// <summary>

@@ -7,7 +7,7 @@ using ProjectEstimationTool.ViewModels;
 
 namespace ProjectEstimationTool.Utilities
 {
-    public class EmptyFieldValidationRule : ValidationRule
+    class EmptyFieldValidationRule : ValidationRule
     {
         private MainWindowViewModel mViewModel;
         private String mPropertyName;

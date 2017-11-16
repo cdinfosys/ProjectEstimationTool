@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProjectEstimationTool.Classes
 {
-    public enum TimeMeasurementUnits
+    enum TimeMeasurementUnits
     {
         Unknown = 0,
         Minutes,

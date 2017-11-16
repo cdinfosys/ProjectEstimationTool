@@ -2,7 +2,7 @@
 
 namespace ProjectEstimationTool.Events
 {
-    public class ShowAddItemEvent : PubSubEvent
+    class ShowAddItemEvent : PubSubEvent
     {
     }
 }

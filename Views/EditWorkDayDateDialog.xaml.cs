@@ -6,7 +6,7 @@ namespace ProjectEstimationTool.Views
     /// <summary>
     /// Interaction logic for EditWorkDayDate.xaml
     /// </summary>
-    public partial class EditWorkDayDateDialog : Window
+    partial class EditWorkDayDateDialog : Window
     {
         public EditWorkDayDateDialog()
         {

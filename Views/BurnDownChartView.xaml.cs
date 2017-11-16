@@ -16,7 +16,7 @@ namespace ProjectEstimationTool.Views
     /// <summary>
     /// Interaction logic for BurnDownChartView.xaml
     /// </summary>
-    public partial class BurnDownChartView : UserControl
+    partial class BurnDownChartView : UserControl
     {
         private Double mControlWidth = 0.0;
         private Double mControlHeight = 0.0;

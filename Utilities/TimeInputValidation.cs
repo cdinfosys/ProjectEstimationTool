@@ -9,7 +9,7 @@ using ProjectEstimationTool.ViewModels;
 
 namespace ProjectEstimationTool.Utilities
 {
-    public class TimeInputValidation : ValidationRule
+    class TimeInputValidation : ValidationRule
     {
         private MainWindowViewModel mViewModel;
         private TimeMeasurementUnits mMeasurementUnits = TimeMeasurementUnits.Unknown;

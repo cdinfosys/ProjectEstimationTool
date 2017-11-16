@@ -5,7 +5,7 @@ using ProjectEstimationTool.Classes;
 
 namespace ProjectEstimationTool.Events
 {
-    public class ProjectModelUserInputRequiredEventPayload
+    class ProjectModelUserInputRequiredEventPayload
     {
         private ProjectModelProcessingStepBase mCurrentStep;
         private String mMessageText;
@@ -40,7 +40,7 @@ namespace ProjectEstimationTool.Events
         public ProjectModelProcessingStepBase CurrentStep => mCurrentStep;
     }
 
-    public class ProjectModelUserInputRequiredEvent : PubSubEvent<ProjectModelUserInputRequiredEventPayload>
+    class ProjectModelUserInputRequiredEvent : PubSubEvent<ProjectModelUserInputRequiredEventPayload>
     {
     }
 }

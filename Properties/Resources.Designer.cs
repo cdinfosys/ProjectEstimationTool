@@ -22,7 +22,7 @@ namespace ProjectEstimationTool.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace ProjectEstimationTool.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ProjectEstimationTool.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace ProjectEstimationTool.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Unsaved Changes.
         /// </summary>
-        public static string CaptionUnsavedChanges {
+        internal static string CaptionUnsavedChanges {
             get {
                 return ResourceManager.GetString("CaptionUnsavedChanges", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Task.
         /// </summary>
-        public static string DefaultNewTaksDescription {
+        internal static string DefaultNewTaksDescription {
             get {
                 return ResourceManager.GetString("DefaultNewTaksDescription", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to TO DO: Project Description.
         /// </summary>
-        public static string DefaultRootTaksDescription {
+        internal static string DefaultRootTaksDescription {
             get {
                 return ResourceManager.GetString("DefaultRootTaksDescription", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Select a date that is after {0}.
         /// </summary>
-        public static string ErrorDateBeforeLastWorkDay {
+        internal static string ErrorDateBeforeLastWorkDay {
             get {
                 return ResourceManager.GetString("ErrorDateBeforeLastWorkDay", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Enter a value that is below {0:G2} hours.
         /// </summary>
-        public static string ErrorGreaterThanMaxHours {
+        internal static string ErrorGreaterThanMaxHours {
             get {
                 return ResourceManager.GetString("ErrorGreaterThanMaxHours", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Enter a value that is below {0:G0} minutes.
         /// </summary>
-        public static string ErrorGreaterThanMaxMinutes {
+        internal static string ErrorGreaterThanMaxMinutes {
             get {
                 return ResourceManager.GetString("ErrorGreaterThanMaxMinutes", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Enter a value that is over  {0:G2} hours..
         /// </summary>
-        public static string ErrorLessThanMinimumHours {
+        internal static string ErrorLessThanMinimumHours {
             get {
                 return ResourceManager.GetString("ErrorLessThanMinimumHours", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Enter a value that is over {0:G2} minutes.
         /// </summary>
-        public static string ErrorLessThanMinimumMinutes {
+        internal static string ErrorLessThanMinimumMinutes {
             get {
                 return ResourceManager.GetString("ErrorLessThanMinimumMinutes", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Value must be numeric.
         /// </summary>
-        public static string ErrorNotNumeric {
+        internal static string ErrorNotNumeric {
             get {
                 return ResourceManager.GetString("ErrorNotNumeric", resourceCulture);
             }
@@ -144,7 +144,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Schema version {0} is not supported by this version of the program.
         /// </summary>
-        public static string ErrorUnsupportedSchemaVersion {
+        internal static string ErrorUnsupportedSchemaVersion {
             get {
                 return ResourceManager.GetString("ErrorUnsupportedSchemaVersion", resourceCulture);
             }
@@ -153,7 +153,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Leaf item cannot have a child.
         /// </summary>
-        public static string LeafTreeItemExceptionMessage {
+        internal static string LeafTreeItemExceptionMessage {
             get {
                 return ResourceManager.GetString("LeafTreeItemExceptionMessage", resourceCulture);
             }
@@ -162,7 +162,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Hours.
         /// </summary>
-        public static string MeasurementHoursLabel {
+        internal static string MeasurementHoursLabel {
             get {
                 return ResourceManager.GetString("MeasurementHoursLabel", resourceCulture);
             }
@@ -171,7 +171,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Minutes.
         /// </summary>
-        public static string MeasurementMinutesLabel {
+        internal static string MeasurementMinutesLabel {
             get {
                 return ResourceManager.GetString("MeasurementMinutesLabel", resourceCulture);
             }
@@ -180,16 +180,52 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to No error.
         /// </summary>
-        public static string NoError {
+        internal static string NoError {
             get {
                 return ResourceManager.GetString("NoError", resourceCulture);
             }
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to .xlsx.
+        /// </summary>
+        internal static string ProjectExportDefaultExtension {
+            get {
+                return ResourceManager.GetString("ProjectExportDefaultExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Excel Spreadsheets|*.xlsx|All Files|*.*.
+        /// </summary>
+        internal static string ProjectExportFileNameFilter {
+            get {
+                return ResourceManager.GetString("ProjectExportFileNameFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .petproj.
+        /// </summary>
+        internal static string ProjectFileDefaultExtension {
+            get {
+                return ResourceManager.GetString("ProjectFileDefaultExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Estimation Tool Projects|*.petproj|All Files|*.*.
+        /// </summary>
+        internal static string ProjectFileOpenSaveFilter {
+            get {
+                return ResourceManager.GetString("ProjectFileOpenSaveFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changes to the project have not been saved. Would you like to save these changes?.
         /// </summary>
-        public static string QuestionSaveChanges {
+        internal static string QuestionSaveChanges {
             get {
                 return ResourceManager.GetString("QuestionSaveChanges", resourceCulture);
             }
@@ -198,7 +234,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to This property can only be set on a leaf item.
         /// </summary>
-        public static string SetBranchTreeItemPropertyExceptionMessage {
+        internal static string SetBranchTreeItemPropertyExceptionMessage {
             get {
                 return ResourceManager.GetString("SetBranchTreeItemPropertyExceptionMessage", resourceCulture);
             }
@@ -207,7 +243,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Database last update date and time record is missing.
         /// </summary>
-        public static string SQLiteDataAccess_DatabaseLastUpdateDateTimeNotFound {
+        internal static string SQLiteDataAccess_DatabaseLastUpdateDateTimeNotFound {
             get {
                 return ResourceManager.GetString("SQLiteDataAccess_DatabaseLastUpdateDateTimeNotFound", resourceCulture);
             }
@@ -216,7 +252,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Database schema version number not found.
         /// </summary>
-        public static string SQLiteDataAccess_DatabaseSchemaVersionNotFound {
+        internal static string SQLiteDataAccess_DatabaseSchemaVersionNotFound {
             get {
                 return ResourceManager.GetString("SQLiteDataAccess_DatabaseSchemaVersionNotFound", resourceCulture);
             }
@@ -225,7 +261,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Path to the database file must be specified.
         /// </summary>
-        public static string SQLiteDataAccess_EmptyFilePath {
+        internal static string SQLiteDataAccess_EmptyFilePath {
             get {
                 return ResourceManager.GetString("SQLiteDataAccess_EmptyFilePath", resourceCulture);
             }
@@ -234,7 +270,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Invalid file path.
         /// </summary>
-        public static string SQLiteDataAccess_InvalidFilePath {
+        internal static string SQLiteDataAccess_InvalidFilePath {
             get {
                 return ResourceManager.GetString("SQLiteDataAccess_InvalidFilePath", resourceCulture);
             }
@@ -243,7 +279,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Set up a work day for logging time against.
         /// </summary>
-        public static string SQLiteDataAccess_NoCurrentWorkDaySet {
+        internal static string SQLiteDataAccess_NoCurrentWorkDaySet {
             get {
                 return ResourceManager.GetString("SQLiteDataAccess_NoCurrentWorkDaySet", resourceCulture);
             }
@@ -252,7 +288,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Project version number not found.
         /// </summary>
-        public static string SQLiteDataAccess_ProjectVersionNotFound {
+        internal static string SQLiteDataAccess_ProjectVersionNotFound {
             get {
                 return ResourceManager.GetString("SQLiteDataAccess_ProjectVersionNotFound", resourceCulture);
             }
@@ -261,7 +297,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Unsupported schema version.
         /// </summary>
-        public static string SQLiteDataAccess_UnsupportedDatabaseSchemaVersion {
+        internal static string SQLiteDataAccess_UnsupportedDatabaseSchemaVersion {
             get {
                 return ResourceManager.GetString("SQLiteDataAccess_UnsupportedDatabaseSchemaVersion", resourceCulture);
             }
@@ -270,7 +306,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Enter a value for this field.
         /// </summary>
-        public static string TaskItemValidation_EmptyField {
+        internal static string TaskItemValidation_EmptyField {
             get {
                 return ResourceManager.GetString("TaskItemValidation_EmptyField", resourceCulture);
             }
@@ -279,7 +315,7 @@ namespace ProjectEstimationTool.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Undefined error.
         /// </summary>
-        public static string UndefinedError {
+        internal static string UndefinedError {
             get {
                 return ResourceManager.GetString("UndefinedError", resourceCulture);
             }

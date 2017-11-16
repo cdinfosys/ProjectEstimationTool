@@ -3,7 +3,7 @@ using Prism.Events;
 
 namespace ProjectEstimationTool.Events
 {
-    public class ShowEditProjectPropertiesEvent : PubSubEvent
+    class ShowEditProjectPropertiesEvent : PubSubEvent
     {
     }
 }

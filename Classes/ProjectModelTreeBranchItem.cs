@@ -9,7 +9,7 @@ namespace ProjectEstimationTool.Classes
     /// <summary>
     ///     Extension of the <see cref="ProjectTreeBranchItem"/> class used in the model.
     /// </summary>
-    public class ProjectModelTreeBranchItem : ProjectTreeBranchItem, ICloneable
+    class ProjectModelTreeBranchItem : ProjectTreeBranchItem, ICloneable
     {
         [Flags]
         public enum ChangeTrackingFlags

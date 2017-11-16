@@ -11,7 +11,7 @@ using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.Model
 {
-    public class SQLiteDataAccessExceptionArgs : ExceptionArgs
+    class SQLiteDataAccessExceptionArgs : ExceptionArgs
     {
         public enum ErrorCode
         {
@@ -89,7 +89,7 @@ namespace ProjectEstimationTool.Model
         }
     }
 
-    public class SQLiteDataAccess : IDataAccess
+    class SQLiteDataAccess : IDataAccess
     {
         /// <summary>
         ///     ID of the record in the ProjectMetaData table that stores the database schema version ID.

@@ -16,9 +16,20 @@ using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.ViewModels
 {
-    public class MainWindowViewModel : ViewModelBase, IMainWindowViewModel
+    class MainWindowViewModel : ViewModelBase, IMainWindowViewModel
     {
+        #region Type members
+        /// <summary>
+        /// Object used for thread synching access to the recalculation cancellation token
+        /// </summary>
         private static Object sLockRecalculateProjectDurationCancellationToken = new Object();
+
+        /// <summary>
+        /// Cancellation token source for cancelling saving to Excel file operations.
+        /// </summary>
+        private static CancellationTokenSource sExportProjectToExcelCancellationTokenSource;
+
+        #endregion // Type members
 
         #region Fields
         private ObservableCollection<ProjectTreeItemBase> mProjectItemsTreeData = new ObservableCollection<ProjectTreeItemBase>();
@@ -28,19 +39,19 @@ namespace ProjectEstimationTool.ViewModels
         private Boolean mCanCloseMainWindow = false;
         private PropertyValidationErrorsCollection mAddEditTaskDialogErrorsCollection;
         private PropertyValidationErrorsCollection mEditWorkDayDateDialogErrorsCollection;
-        private ICommand mSaveCommand;
-        private ICommand mCloseCommand;
-        private ICommand mNewCommand;
-        private ICommand mLoadCommand;
-        private ICommand mExportCommand;
-        private ICommand mProjectPropertiesCommand;
-        private ICommand mAddTaskCommand;
-        private ICommand mEditTaskCommand;
-        private ICommand mDeleteTaskCommand;
-        private ICommand mAddWorkDayCommand;
-        private ICommand mAddEditTaskDialogOkButtonCommand;
-        private ICommand mEditWorkDayDateOkButtonCommand;
-        private ICommand mEditProjectPropertiesDialogOkButtonCommand;
+        private DelegateCommand mSaveCommand;
+        private DelegateCommand mCloseCommand;
+        private DelegateCommand mNewCommand;
+        private DelegateCommand mLoadCommand;
+        private DelegateCommand mExportCommand;
+        private DelegateCommand mProjectPropertiesCommand;
+        private DelegateCommand mAddTaskCommand;
+        private DelegateCommand mEditTaskCommand;
+        private DelegateCommand mDeleteTaskCommand;
+        private DelegateCommand mAddWorkDayCommand;
+        private DelegateCommand mAddEditTaskDialogOkButtonCommand;
+        private DelegateCommand mEditWorkDayDateOkButtonCommand;
+        private DelegateCommand mEditProjectPropertiesDialogOkButtonCommand;
         private Boolean mIsEditingExistingItem;
         private Boolean mIsMainWindowDisabled = false;
         private DateTime mEditWorkDayDate;
@@ -69,7 +80,9 @@ namespace ProjectEstimationTool.ViewModels
             Utility.TaskItemChanged += OnTaskItemChanged;
             Utility.EventAggregator.GetEvent<ProjectModelChangedEvent>().Subscribe(OnProjectModelChanged);
             Utility.EventAggregator.GetEvent<ProjectWorkDayCreatedEvent>().Subscribe(OnWorkDayCreated);
+            Utility.EventAggregator.GetEvent<ExportProjectToExcelEvent>().Subscribe(OnExportProjectToExcel);
         }
+
         #endregion Construction
 
         #region Public accessor methods
@@ -749,14 +762,48 @@ namespace ProjectEstimationTool.ViewModels
             steps.Execute();
         }
 
+        /// <summary>
+        /// Event handler for the File->Export menu item.
+        /// </summary>
         private void OnExportDocument()
         {
-            if (File.Exists("D:\\1\\huh.xlsx"))
+            Utility.EventAggregator.GetEvent<GetExportFileNameEvent>().Publish();
+        }
+
+        /// <summary>
+        /// Event handler for the <see cref="ExportProjectToExcelEvent"/> event that is raised after the
+        /// user has selected a file name.
+        /// </summary>
+        /// <param name="excelFilePath">
+        /// Path to the export file.
+        /// </param>
+        private async void OnExportProjectToExcel(String excelFilePath)
+        {
+            // Cancel waiting operations
+            if (sExportProjectToExcelCancellationTokenSource != null)
             {
-                File.Delete("D:\\1\\huh.xlsx");
+                sExportProjectToExcelCancellationTokenSource.Cancel();
+                sExportProjectToExcelCancellationTokenSource.Dispose();
+            }
+            sExportProjectToExcelCancellationTokenSource = new CancellationTokenSource();
+
+            await Task.Run(() => ExportToExcelFile(excelFilePath), sExportProjectToExcelCancellationTokenSource.Token);
+        }
+
+        /// <summary>
+        /// Helper for the <see cref="OnExportProjectToExcel"/> method to export data to an Excel file.
+        /// </summary>
+        /// <param name="excelFilePath">
+        /// Path to the file.
+        /// </param>
+        private void ExportToExcelFile(String excelFilePath)
+        {
+            if (File.Exists(excelFilePath))
+            {
+                File.Delete(excelFilePath);
             }
 
-            using (var exporter = new ExcelExport.ExcelExporter("D:\\1\\huh.xlsx"))
+            using (var exporter = new ExcelExport.ExcelExporter(excelFilePath))
             {
             }
         }

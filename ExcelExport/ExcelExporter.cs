@@ -10,7 +10,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace ProjectEstimationTool.ExcelExport
 {
-    public class ExcelExporter : IDisposable
+    class ExcelExporter : IDisposable
     {
         #region Private fields
         /// <summary>

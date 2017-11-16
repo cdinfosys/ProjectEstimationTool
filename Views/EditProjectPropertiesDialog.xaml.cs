@@ -7,7 +7,7 @@ namespace ProjectEstimationTool.Views
     /// <summary>
     /// Interaction logic for EditProjectPropertiesDialog.xaml
     /// </summary>
-    public partial class EditProjectPropertiesDialog : Window
+    partial class EditProjectPropertiesDialog : Window
     {
         public EditProjectPropertiesDialog()
         {

@@ -5,7 +5,7 @@ namespace ProjectEstimationTool.Classes
     /// <summary>
     ///     DTO for records retrieved from the DaysWorked table.
     /// </summary>
-    public class DaysWorkedDTO
+    class DaysWorkedDTO
     {
         private readonly Int32 mDaysWorkedID;
         private readonly DateTime mCalendarDate;

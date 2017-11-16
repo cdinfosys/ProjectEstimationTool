@@ -7,7 +7,7 @@ using ProjectEstimationTool.Classes;
 
 namespace ProjectEstimationTool.Events
 {
-    public class ProjectModelFilePathRequiredEventPayload
+    class ProjectModelFilePathRequiredEventPayload
     {
         private ProjectModelProcessingStepBase mCurrentStep;
         private Boolean mShowOpenDialog = false;
@@ -26,7 +26,7 @@ namespace ProjectEstimationTool.Events
         }
     }
 
-    public class ProjectModelFilePathRequiredEvent : Prism.Events.PubSubEvent<ProjectModelFilePathRequiredEventPayload>
+    class ProjectModelFilePathRequiredEvent : Prism.Events.PubSubEvent<ProjectModelFilePathRequiredEventPayload>
     {
     } // class UnsavedModelChangesEvent
 } // namespace ProjectEstimationTool.Events

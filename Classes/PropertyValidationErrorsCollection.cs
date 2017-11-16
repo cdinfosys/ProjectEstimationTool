@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ProjectEstimationTool.Classes
 {
-    public class PropertyValidationErrorsCollection
+    class PropertyValidationErrorsCollection
     {
         public delegate void CollectionChangedDelegate();
 

@@ -17,7 +17,7 @@ namespace ProjectEstimationTool.Views
     /// <summary>
     /// Interaction logic for AddEditTaskDialog.xaml
     /// </summary>
-    public partial class AddEditTaskDialog : Window
+    partial class AddEditTaskDialog : Window
     {
         public AddEditTaskDialog()
         {

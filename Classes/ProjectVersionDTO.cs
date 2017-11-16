@@ -2,7 +2,7 @@
 
 namespace ProjectEstimationTool.Classes
 {
-    public class ProjectVersionDTO : ICloneable
+    class ProjectVersionDTO : ICloneable
     {
         private readonly Int32 mProjectVersionID;
         private readonly DateTime mVersionDate;

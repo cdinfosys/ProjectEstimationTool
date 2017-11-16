@@ -7,7 +7,7 @@ using ProjectEstimationTool.Utilities;
 
 namespace ProjectEstimationTool.Classes
 {
-    public class CloseProjectModelStep : ProjectModelProcessingStepBase
+    class CloseProjectModelStep : ProjectModelProcessingStepBase
     {
         private ProjectModel mProjectModel;
 
