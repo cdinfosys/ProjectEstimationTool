@@ -204,4 +204,7 @@
   <data name="ProjectFileOpenSaveFilter" xml:space="preserve">
     <value>Estimation Tool Projects|*.petproj|All Files|*.*</value>
   </data>
+  <data name="ExcelSheetName" xml:space="preserve">
+    <value>Project Plan</value>
+  </data>
 </root>

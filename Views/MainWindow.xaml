@@ -67,7 +67,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Sun shade for disabling the main view -->
+        <!-- Sunshade for disabling the main view -->
         <Grid
             Grid.Column="0"
             Grid.Row="0"
@@ -96,6 +96,13 @@
                             <MenuItem Header="_Open..." Command="{Binding LoadCommand}" InputGestureText="Ctrl+O"/>
                             <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S"/>
                             <MenuItem Header="_Close" Command="{Binding CloseCommand}" InputGestureText="Ctrl+W"/>
+                            <Separator Visibility="{Binding RecentlyUsedFileListVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <MenuItem
+                                x:Name="recentlyUsedFile00"
+                                Header="{Binding RecentlyUsedFiles[0].FileName}" 
+                                Visibility="{Binding RecentlyUsedFiles[0].IsUsed, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                Command="{Binding RecentlyUsedCommand}"
+                                CommandParameter="0"/>
                             <Separator/>
                             <MenuItem Header="Expor_t..." Command="{Binding ExportCommand}"/>
                             <Separator/>

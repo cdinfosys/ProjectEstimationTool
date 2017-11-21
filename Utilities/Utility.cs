@@ -17,6 +17,11 @@ namespace ProjectEstimationTool.Utilities
     {
         public static event EventHandler<String> TaskItemChanged;
 
+        /// <summary>
+        /// Object used for thread synching access to the app settings.
+        /// </summary>
+        public static readonly Object ProgramSettingsSynchLockObject = new Object();
+
         #region Private class members
         private static readonly Prism.Events.IEventAggregator mEventAggregator = new Prism.Events.EventAggregator();
         private static Logger mLoggerInstance = LogManager.GetCurrentClassLogger();
@@ -82,7 +87,10 @@ namespace ProjectEstimationTool.Utilities
                 {
                     try
                     {
-                        settings.Save();
+                        lock (ProgramSettingsSynchLockObject)
+                        {
+                            settings.Save();
+                        }
                     }
                     catch (OperationCanceledException)
                     {

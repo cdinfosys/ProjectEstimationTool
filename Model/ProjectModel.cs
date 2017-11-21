@@ -7,11 +7,20 @@ using ProjectEstimationTool.Events;
 using ProjectEstimationTool.Interfaces;
 using ProjectEstimationTool.Properties;
 using ProjectEstimationTool.Utilities;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace ProjectEstimationTool.Model
 {
     class ProjectModel
     {
+        #region Type members
+        /// <summary>
+        /// Cancellation token source for the <see cref="UpdateRecentlyUsedFilesList"/> method.
+        /// </summary>
+        private static CancellationTokenSource sUpdateRecentlyUsedFilesListCancellationTokenSource;
+        #endregion // Type members
+
         #region Private data members
         /// <summary>
         ///     Flag to indicate that the data in the model was modified.
@@ -330,6 +339,53 @@ namespace ProjectEstimationTool.Model
             StoreNewWorkDays();
 
             this.ModelChanged = false;
+        }
+
+        public async void UpdateRecentlyUsedFilesList()
+        {
+            if (sUpdateRecentlyUsedFilesListCancellationTokenSource != null)
+            {
+                sUpdateRecentlyUsedFilesListCancellationTokenSource.Cancel();
+                sUpdateRecentlyUsedFilesListCancellationTokenSource.Dispose();
+            }
+            sUpdateRecentlyUsedFilesListCancellationTokenSource = new CancellationTokenSource();
+
+            await Task.Run
+            (
+                () =>
+                {
+                    lock (Utility.ProgramSettingsSynchLockObject)
+                    {
+                        String modelFilePath = PathToModelFile;
+                        if (Settings.Default.RecentlyUsedFiles == null)
+                        {
+                            Settings.Default.RecentlyUsedFiles = new System.Collections.Specialized.StringCollection { modelFilePath };
+                            return;
+                        }
+
+                        // Put current file at the top of the list.
+                        Settings.Default.RecentlyUsedFiles.Insert(0, modelFilePath);
+
+                        // Remove any previous instances of the file.
+                        for (Int32 pathIndex = 1; pathIndex < Settings.Default.RecentlyUsedFiles.Count; ++pathIndex)
+                        {
+                            if (String.Compare(Settings.Default.RecentlyUsedFiles[pathIndex], modelFilePath, StringComparison.OrdinalIgnoreCase) == 0)
+                            {
+                                Settings.Default.RecentlyUsedFiles.RemoveAt(pathIndex);
+                                return;
+                            }
+                        }
+                    }
+                },
+                sUpdateRecentlyUsedFilesListCancellationTokenSource.Token
+            ).ContinueWith
+            (
+                task =>
+                {
+                    Utility.SaveSettingsAsync(Settings.Default);
+                },
+                TaskContinuationOptions.OnlyOnRanToCompletion
+            );
         }
 
         public void SaveDataAs(String pathToOutputFile)

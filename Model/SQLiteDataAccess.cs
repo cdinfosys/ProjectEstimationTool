@@ -1047,7 +1047,7 @@ namespace ProjectEstimationTool.Model
 
             if (mSQLiteConnection == null)
             {
-                SQLiteConnectionStringBuilder connectionString = new SQLiteConnectionStringBuilder(Settings.Default.SQLiteConnectionStringTemplate);
+                var connectionString = new SQLiteConnectionStringBuilder(Settings.Default.SQLiteConnectionStringTemplate);
                 connectionString.DataSource = this.mDatabaseFilePath;
                 mSQLiteConnection = new SQLiteConnection(connectionString.ToString());
                 mSQLiteConnection.Open();
